@@ -66,8 +66,10 @@ jobs:
           name: KestrelTun v1.0.0 (arm64-v8a Release)
           body: |
             ### KestrelTun v1.0.0 — Native Android VPN Client (mihomo + Full TUN)
-            - R8-optimized **Release APK** (native 120Hz Jetpack Compose UI)
+            - R8-optimized **Release APK** (native Kotlin + Jetpack Compose Material You UI)
             - Embedded **mihomo v1.19.34** + **hev-socks5-tunnel v2.20.0** Full TUN (`arm64-v8a`)
             - VLESS Reality, Hysteria2, TUIC, WireGuard, Trojan, VMess, Shadowsocks
-            - Fast native Go batch ping, Auto-Groups with custom timers, AdBlock, RU Bypass, Split Tunneling & Smart RU Apps
+            - **Auto-Groups**: fast native Go batch ping and automatic best-server switching with custom timers
+            - **Auto Split Tunneling**: smart automatic app bypass plus manual per-app include/exclude lists
+            - AdBlock, RU Bypass, custom domains, and mobile Wi-Fi/LTE reconnect resilience
           files: KestrelTun-v1.0.0-arm64-release.apk
