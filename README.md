@@ -6,7 +6,7 @@
 
 **Open-source native Android VPN & proxy client built on Mihomo (Clash.Meta) and Full TUN.**
 
-**English** · [Русский](README_RU.md)
+[![English](https://img.shields.io/badge/Language-English-2ea44f?style=for-the-badge)](README.md) [![Русский](https://img.shields.io/badge/Язык-Русский-1f6feb?style=for-the-badge)](README_RU.md)
 
 [![Latest Release](https://img.shields.io/github/v/release/Meowt3/KestrelTun?style=flat-square&label=release&color=2ea44f)](https://github.com/Meowt3/KestrelTun/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/Meowt3/KestrelTun/total?style=flat-square&logo=github)](https://github.com/Meowt3/KestrelTun/releases)
@@ -29,11 +29,9 @@
 
 ## Screenshots
 
-<p align="center">
-  <img src="snapshots/dashboard.png" alt="KestrelTun Dashboard" width="250" />&nbsp;&nbsp;
-  <img src="snapshots/routing.png" alt="KestrelTun Routing & Rules" width="250" />&nbsp;&nbsp;
-  <img src="snapshots/settings.png" alt="KestrelTun Settings & Themes" width="250" />
-</p>
+| Dashboard | Routing & Rules | Settings & Themes |
+| :---: | :---: | :---: |
+| ![KestrelTun Dashboard](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/dashboard.png) | ![KestrelTun Routing & Rules](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/routing.png) | ![KestrelTun Settings & Themes](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/settings.png) |
 
 ## Download
 

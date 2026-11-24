@@ -6,7 +6,7 @@
 
 **Открытый нативный Android VPN- и прокси-клиент на ядре Mihomo (Clash.Meta) с Full TUN.**
 
-[English](README.md) · **Русский**
+[![English](https://img.shields.io/badge/Language-English-1f6feb?style=for-the-badge)](README.md) [![Русский](https://img.shields.io/badge/Язык-Русский-2ea44f?style=for-the-badge)](README_RU.md)
 
 [![Последний релиз](https://img.shields.io/github/v/release/Meowt3/KestrelTun?style=flat-square&label=релиз&color=2ea44f)](https://github.com/Meowt3/KestrelTun/releases/latest)
 [![Загрузки](https://img.shields.io/github/downloads/Meowt3/KestrelTun/total?style=flat-square&logo=github&label=загрузки)](https://github.com/Meowt3/KestrelTun/releases)
@@ -27,11 +27,9 @@
 
 ## Скриншоты
 
-<p align="center">
-  <img src="snapshots/dashboard.png" alt="KestrelTun — Панель" width="250" />&nbsp;&nbsp;
-  <img src="snapshots/routing.png" alt="KestrelTun — Сеть и правила" width="250" />&nbsp;&nbsp;
-  <img src="snapshots/settings.png" alt="KestrelTun — Настройки и темы" width="250" />
-</p>
+| Панель | Сеть и правила | Настройки и темы |
+| :---: | :---: | :---: |
+| ![KestrelTun — Панель](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/dashboard.png) | ![KestrelTun — Сеть и правила](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/routing.png) | ![KestrelTun — Настройки и темы](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/settings.png) |
 
 ## Скачать
 
