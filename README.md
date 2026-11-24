@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="KestrelTun" width="92" />
+<img src="https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/icon.png" alt="KestrelTun" width="96" />
 
 # KestrelTun
 
@@ -11,7 +11,7 @@
 [![Latest Release](https://img.shields.io/badge/release-v1.0.0-2ea44f?style=flat-square&logo=github)](https://github.com/Meowt3/KestrelTun/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/Meowt3/KestrelTun/total?style=flat-square&logo=github)](https://github.com/Meowt3/KestrelTun/releases)
 [![Build APK](https://img.shields.io/github/actions/workflow/status/Meowt3/KestrelTun/build-apk.yml?style=flat-square&label=build)](https://github.com/Meowt3/KestrelTun/actions/workflows/build-apk.yml)
-[![Android](https://img.shields.io/badge/Android-10%2B%20%7C%20arm64--v8a-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/Meowt3/KestrelTun/releases/latest)
+[![Android](https://img.shields.io/badge/Android-10%2B%20%7C%20Universal-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/Meowt3/KestrelTun/releases/latest)
 [![Core](https://img.shields.io/badge/mihomo-v1.19.34-blue?style=flat-square)](https://github.com/MetaCubeX/mihomo)
 [![License](https://img.shields.io/github/license/Meowt3/KestrelTun?style=flat-square)](LICENSE)
 
@@ -37,9 +37,12 @@
 
 Get the latest signed Release APK from [GitHub Releases](https://github.com/Meowt3/KestrelTun/releases/latest):
 
-| Platform | Architecture | Package | Requirements |
-| --- | --- | --- | --- |
-| **Android** | `arm64-v8a` | [`KestrelTun-v1.0.0-arm64-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.0.0-arm64-release.apk) | Android 10+ (API 29+) |
+| Architecture | Package | Best For |
+| --- | --- | --- |
+| **Universal** | [`KestrelTun-v1.0.0-universal-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.0.0-universal-release.apk) | Any Android 10+ device (if unsure) |
+| **`arm64-v8a`** | [`KestrelTun-v1.0.0-arm64-v8a-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.0.0-arm64-v8a-release.apk) | Modern 64-bit phones (recommended, smaller size) |
+| **`armeabi-v7a`** | [`KestrelTun-v1.0.0-armeabi-v7a-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.0.0-armeabi-v7a-release.apk) | Older 32-bit Android phones & Android TV boxes |
+| **`x86_64`** | [`KestrelTun-v1.0.0-x86_64-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.0.0-x86_64-release.apk) | Emulators, Chromebooks, WSA & x86_64 tablets |
 
 ### Quick Start
 
@@ -72,7 +75,7 @@ Get the latest signed Release APK from [GitHub Releases](https://github.com/Meow
 | **Proxy Core** | [Mihomo (Clash.Meta)](https://github.com/MetaCubeX/mihomo) `v1.19.34` (`libmihomo.so`, Go) |
 | **TUN Bridge** | [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) `v2.20.0` (`libhev-socks5-tunnel.so`, C) |
 | **Application UI** | Native Android — Kotlin, Jetpack Compose, Material 3 |
-| **Target Platform** | Android 10–15+ (`minSdk 29`, `targetSdk 35`, `arm64-v8a`) |
+| **Target Platform** | Android 10–15+ (`minSdk 29`, `targetSdk 35`, `arm64-v8a` / `armeabi-v7a` / `x86_64` / `universal`) |
 
 ## Build from Source
 

@@ -22,13 +22,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Download mihomo core (arm64-v8a v1.19.34)
+      - name: Download mihomo cores (arm64-v8a, armeabi-v7a, x86_64)
         run: |
-          mkdir -p app/src/main/jniLibs/arm64-v8a
-          curl -fsSL -o /tmp/mihomo.gz "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.34/mihomo-android-arm64-v8-v1.19.34.gz"
-          gunzip -c /tmp/mihomo.gz > app/src/main/jniLibs/arm64-v8a/libmihomo.so
-          chmod +x app/src/main/jniLibs/arm64-v8a/libmihomo.so
-          ls -lh app/src/main/jniLibs/arm64-v8a/
+          mkdir -p app/src/main/jniLibs/arm64-v8a app/src/main/jniLibs/armeabi-v7a app/src/main/jniLibs/x86_64
+
+          curl -fsSL "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.34/mihomo-android-arm64-v8-v1.19.34.gz" \
+            | gunzip > app/src/main/jniLibs/arm64-v8a/libmihomo.so
+          curl -fsSL "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.34/mihomo-android-armv7-v1.19.34.gz" \
+            | gunzip > app/src/main/jniLibs/armeabi-v7a/libmihomo.so
+          curl -fsSL "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.34/mihomo-android-amd64-v1.19.34.gz" \
+            | gunzip > app/src/main/jniLibs/x86_64/libmihomo.so
+
+          chmod +x app/src/main/jniLibs/*/libmihomo.so
+          ls -lh app/src/main/jniLibs/*/*
 
       - name: Generate Release Signing Keystore
         run: |
@@ -45,31 +51,40 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build Signed Release APK (R8 Optimized)
+      - name: Build Signed Release APKs (Multi-ABI + Universal)
         run: gradle assembleRelease --no-daemon --stacktrace
 
-      - name: Prepare APK Artifact
+      - name: Prepare APK Artifacts
         run: |
-          cp app/build/outputs/apk/release/app-release.apk KestrelTun-v1.0.0-arm64-release.apk
-          ls -lh KestrelTun-v1.0.0-arm64-release.apk
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-universal-release.apk dist/KestrelTun-v1.0.0-universal-release.apk
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk dist/KestrelTun-v1.0.0-arm64-v8a-release.apk
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk dist/KestrelTun-v1.0.0-armeabi-v7a-release.apk
+          cp app/build/outputs/apk/release/app-x86_64-release.apk dist/KestrelTun-v1.0.0-x86_64-release.apk
+          ls -lh dist/
 
-      - name: Upload Build Artifact
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KestrelTun-v1.0.0-arm64-release
-          path: KestrelTun-v1.0.0-arm64-release.apk
+          name: KestrelTun-v1.0.0-release-apks
+          path: dist/*.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.0
-          name: KestrelTun v1.0.0 (arm64-v8a Release)
+          name: KestrelTun v1.0.0 (Android Multi-ABI + Universal)
           body: |
             ### KestrelTun v1.0.0 — Native Android VPN Client (Mihomo + Full TUN)
-            - **Release APK (`arm64-v8a`)**: R8-optimized native Kotlin + Jetpack Compose Material You client
+            - **Multi-ABI + Universal Release APKs**: `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `universal` (R8-optimized)
+            - **Adaptive Icon**: Full Material You & One UI themed / glass icon support (`monochrome` layer included)
             - **Core**: Embedded **mihomo v1.19.34** + **hev-socks5-tunnel v2.20.0** Full TUN
             - **Protocols**: VLESS Reality, Hysteria2, TUIC, WireGuard, Trojan, VMess, Shadowsocks, SOCKS5, HTTP
             - **Auto-Tunneling**: Fast native Go batch ping and automatic best-server switching with custom timers
             - **Smart Split Tunneling**: One-tap regional app bypass plus manual per-app include/exclude lists
             - **Routing**: Built-in AdBlock, regional bypass, custom domains, and automatic Wi-Fi / mobile reconnect
-          files: KestrelTun-v1.0.0-arm64-release.apk
+          files: |
+            dist/KestrelTun-v1.0.0-universal-release.apk
+            dist/KestrelTun-v1.0.0-arm64-v8a-release.apk
+            dist/KestrelTun-v1.0.0-armeabi-v7a-release.apk
+            dist/KestrelTun-v1.0.0-x86_64-release.apk
