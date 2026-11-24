@@ -47,6 +47,9 @@ class PingEngine(
     private val _totalCount = MutableStateFlow(0)
     val totalCount: StateFlow<Int> = _totalCount.asStateFlow()
 
+    private val _finishedVersion = MutableStateFlow(0)
+    val finishedVersion: StateFlow<Int> = _finishedVersion.asStateFlow()
+
     fun testNodesLive(
         nodes: List<ProxyNode>,
         config: AutoPingConfig,
@@ -61,15 +64,21 @@ class PingEngine(
         activeJob = scope.launch {
             _isTesting.value = true
             _completedCount.value = 0
-            _totalCount.value = nodes.size
 
-            val liveMap = ConcurrentHashMap<String, PingState>(_pingStates.value)
+            val previousStates = _pingStates.value
+            val uniqueNodes = orderNodesForSmartQueue(
+                nodes.distinctBy { MihomoConfigGenerator.resolveExactName(it) },
+                previousStates
+            )
+            _totalCount.value = uniqueNodes.size
+
+            val liveMap = ConcurrentHashMap<String, PingState>(previousStates)
             for (node in nodes) {
                 liveMap[node.id] = PingState.Testing
             }
             _pingStates.value = HashMap(liveMap)
 
-            // Ensure mihomo is running for real HTTP 204 URL latency tests (unified-delay: true)
+            // Ensure mihomo core is running for real HTTPS 204 URLTest (unified-delay: true)
             var startedTempCore = false
             var coreAlive = apiClient.isCoreAlive()
             if (!coreAlive && processManager.findMihomoBinary() != null) {
@@ -88,89 +97,63 @@ class PingEngine(
                             coreAlive = true
                             return@repeat
                         }
-                        delay(200)
+                        delay(150)
                     }
                 }
             }
 
-            val timeoutMs = config.timeoutMs.coerceIn(1500, 3500)
+            // Safe fast ping: 64 concurrent slots + 3000ms timeout + smart queue (previously alive first)
+            val testUrl = config.testUrl.trim().ifBlank { DEFAULT_TEST_URL }
+            val timeoutMs = config.timeoutMs.coerceIn(2500, DEFAULT_TIMEOUT_MS)
+            val concurrency = if (coreAlive) SAFE_FAST_CONCURRENCY else config.maxConcurrency.coerceIn(8, 24)
+            val semaphore = Semaphore(concurrency)
+            val doneCounter = AtomicInteger(0)
+            val allNodesByExactName = repository.nodes.value.groupBy { MihomoConfigGenerator.resolveExactName(it) }
 
-            // FAST PATH (FlClashX style): single native Go batch call GET /group/{name}/delay
-            // Runs all nodes concurrently inside mihomo goroutines (~2-3s for 571 servers, 0 UI churn!)
-            var usedFastGroupPath = false
-            if (coreAlive) {
-                val activeGroupId = repository.activeGroupId.value
-                val targetGroupName = if (activeGroupId == SettingsRepository.GROUP_ALL_ID) {
-                    MihomoConfigGenerator.MAIN_GROUP_NAME
-                } else {
-                    repository.customGroups.value.firstOrNull { it.id == activeGroupId }?.name?.trim()
-                        ?: MihomoConfigGenerator.MAIN_GROUP_NAME
+            val uiFlusher = launch {
+                while (isActive) {
+                    delay(180)
+                    _pingStates.value = HashMap(liveMap)
+                    _completedCount.value = doneCounter.get()
                 }
+            }
 
-                val batchResult = apiClient.testGroupDelay(targetGroupName, config.testUrl, timeoutMs)
-                    ?: if (targetGroupName != MihomoConfigGenerator.MAIN_GROUP_NAME) {
-                        apiClient.testGroupDelay(MihomoConfigGenerator.MAIN_GROUP_NAME, config.testUrl, timeoutMs)
-                    } else null
-
-                if (batchResult != null) {
-                    usedFastGroupPath = true
-                    for (node in nodes) {
+            val jobs = uniqueNodes.map { node ->
+                async {
+                    semaphore.withPermit {
                         val exactName = MihomoConfigGenerator.resolveExactName(node)
-                        val ms = batchResult[exactName] ?: batchResult[node.name.trim()]
-                        liveMap[node.id] = if (ms != null && ms > 0) {
-                            PingState.Success(ms)
+                        val latency = if (coreAlive) {
+                            apiClient.testProxyDelay(exactName, testUrl, timeoutMs)
+                        } else {
+                            measureTcpPing(node.server, node.port, timeoutMs)
+                        }
+                        val state = if (latency != null && latency > 0) {
+                            PingState.Success(latency)
                         } else {
                             PingState.Timeout
                         }
-                    }
-                }
-            }
-
-            // Fallback path if core is offline or group endpoint unavailable
-            if (!usedFastGroupPath) {
-                val concurrency = if (coreAlive) 32 else config.maxConcurrency.coerceIn(8, 24)
-                val semaphore = Semaphore(concurrency)
-                val doneCounter = AtomicInteger(0)
-
-                val uiFlusher = launch {
-                    while (isActive) {
-                        delay(400)
-                        _pingStates.value = HashMap(liveMap)
-                        _completedCount.value = doneCounter.get()
-                    }
-                }
-
-                val jobs = nodes.map { node ->
-                    async {
-                        semaphore.withPermit {
-                            val latency = if (coreAlive) {
-                                apiClient.testProxyDelay(MihomoConfigGenerator.resolveExactName(node), config.testUrl, timeoutMs)
-                            } else {
-                                measureTcpPing(node.server, node.port, timeoutMs)
-                            }
-                            liveMap[node.id] = if (latency != null && latency > 0) {
-                                PingState.Success(latency)
-                            } else {
-                                PingState.Timeout
-                            }
-                            doneCounter.incrementAndGet()
+                        liveMap[node.id] = state
+                        allNodesByExactName[exactName]?.forEach { sibling ->
+                            liveMap[sibling.id] = state
                         }
+                        doneCounter.incrementAndGet()
                     }
                 }
-
-                jobs.awaitAll()
-                uiFlusher.cancel()
             }
+
+            jobs.awaitAll()
+            uiFlusher.cancel()
 
             val finalSnapshot = HashMap(liveMap)
             _pingStates.value = finalSnapshot
-            _completedCount.value = nodes.size
+            _completedCount.value = uniqueNodes.size
 
             val vpnState = FlClashVpnService.runtimeState.value
             if (startedTempCore && !vpnState.isConnected && vpnState.engineMode == CoreEngineMode.STOPPED) {
                 processManager.stopAll()
             }
             _isTesting.value = false
+            _finishedVersion.value += 1
             onComplete?.invoke(finalSnapshot)
         }
     }
@@ -179,13 +162,21 @@ class PingEngine(
         scope.launch {
             _pingStates.update { it + (node.id to PingState.Testing) }
             val coreAlive = apiClient.isCoreAlive()
+            val testUrl = config.testUrl.trim().ifBlank { DEFAULT_TEST_URL }
+            val exactName = MihomoConfigGenerator.resolveExactName(node)
             val latency = if (coreAlive) {
-                apiClient.testProxyDelay(MihomoConfigGenerator.resolveExactName(node), config.testUrl, config.timeoutMs)
+                apiClient.testProxyDelay(exactName, testUrl, DEFAULT_TIMEOUT_MS)
             } else {
                 measureTcpPing(node.server, node.port, config.timeoutMs)
             }
             val result = if (latency != null && latency > 0) PingState.Success(latency) else PingState.Timeout
-            _pingStates.update { it + (node.id to result) }
+            val siblings = repository.nodes.value.filter { MihomoConfigGenerator.resolveExactName(it) == exactName }
+            _pingStates.update { current ->
+                val updated = current.toMutableMap()
+                updated[node.id] = result
+                siblings.forEach { updated[it.id] = result }
+                updated
+            }
         }
     }
 
@@ -206,6 +197,32 @@ class PingEngine(
         }
 
     companion object {
+        const val SAFE_FAST_CONCURRENCY = 64
+        const val DEFAULT_TIMEOUT_MS = 3000
+        const val DEFAULT_TEST_URL = "https://www.gstatic.com/generate_204"
+
+        /**
+         * Smart queue order: previously working nodes run first (fastest first) so live results
+         * refresh in <1s, while previously timed-out nodes run at the tail.
+         */
+        fun orderNodesForSmartQueue(
+            nodes: List<ProxyNode>,
+            previousStates: Map<String, PingState>
+        ): List<ProxyNode> {
+            if (previousStates.isEmpty()) return nodes
+            return nodes.sortedWith(
+                compareBy<ProxyNode> { node ->
+                    when (previousStates[node.id]) {
+                        is PingState.Success -> 0
+                        is PingState.Idle, is PingState.Testing, null -> 1
+                        is PingState.Timeout -> 2
+                    }
+                }.thenBy { node ->
+                    (previousStates[node.id] as? PingState.Success)?.latencyMs ?: Int.MAX_VALUE
+                }
+            )
+        }
+
         fun sortNodesByLivePing(
             nodes: List<ProxyNode>,
             pingStates: Map<String, PingState>,

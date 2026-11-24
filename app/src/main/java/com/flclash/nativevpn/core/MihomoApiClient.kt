@@ -30,8 +30,8 @@ class MihomoApiClient(
 
     private val client = OkHttpClient.Builder()
         .dispatcher(Dispatcher().apply {
-            maxRequests = 64
-            maxRequestsPerHost = 64
+            maxRequests = 96
+            maxRequestsPerHost = 96
         })
         .connectTimeout(2, TimeUnit.SECONDS)
         .readTimeout(6, TimeUnit.SECONDS)

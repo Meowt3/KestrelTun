@@ -127,8 +127,8 @@ data class AutoPingConfig(
     val hideTimeouts: Boolean = false,
     val closeConnectionsOnSwitch: Boolean = true,
     val testUrl: String = "https://www.gstatic.com/generate_204",
-    val timeoutMs: Int = 3500,
-    val maxConcurrency: Int = 12
+    val timeoutMs: Int = 3000,
+    val maxConcurrency: Int = 64
 )
 
 @Immutable
@@ -145,12 +145,14 @@ data class SubscriptionProfile(
 )
 
 @Immutable
+@Serializable
 data class TrafficStats(
     val uploadBytesPerSec: Long = 0L,
     val downloadBytesPerSec: Long = 0L
 )
 
 @Immutable
+@Serializable
 data class ActiveConnectionItem(
     val id: String,
     val host: String,
@@ -162,6 +164,7 @@ data class ActiveConnectionItem(
 )
 
 @Immutable
+@Serializable
 data class NetworkCheckResult(
     val ip: String = "",
     val country: String = "",
@@ -171,6 +174,7 @@ data class NetworkCheckResult(
 )
 
 @Immutable
+@Serializable
 data class InstalledAppItem(
     val packageName: String,
     val label: String
@@ -200,17 +204,23 @@ data class VpnRuntimeState(
 @Serializable
 enum class AppThemeMode {
     SYSTEM,
+    LIGHT,
     DARK,
-    LIGHT
+    AMOLED
 }
 
 @Serializable
 enum class AppThemePalette {
     DYNAMIC,
-    EMERALD,
     OCEAN,
+    EMERALD,
+    TEAL,
     VIOLET,
-    AMOLED
+    CRIMSON,
+    AMBER,
+    ROSE,
+    MONOCHROME,
+    AMOLED // kept for safe backward-compat deserialization of older saved prefs
 }
 
 @Immutable

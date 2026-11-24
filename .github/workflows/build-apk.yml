@@ -51,40 +51,48 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Run Unit Tests
+        run: gradle testDebugUnitTest --no-daemon
+
       - name: Build Signed Release APKs (Multi-ABI + Universal)
         run: gradle assembleRelease --no-daemon --stacktrace
 
       - name: Prepare APK Artifacts
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-universal-release.apk dist/KestrelTun-v1.0.0-universal-release.apk
-          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk dist/KestrelTun-v1.0.0-arm64-v8a-release.apk
-          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk dist/KestrelTun-v1.0.0-armeabi-v7a-release.apk
-          cp app/build/outputs/apk/release/app-x86_64-release.apk dist/KestrelTun-v1.0.0-x86_64-release.apk
+          cp app/build/outputs/apk/release/app-universal-release.apk dist/KestrelTun-v1.1.0-universal-release.apk
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk dist/KestrelTun-v1.1.0-arm64-v8a-release.apk
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk dist/KestrelTun-v1.1.0-armeabi-v7a-release.apk
+          cp app/build/outputs/apk/release/app-x86_64-release.apk dist/KestrelTun-v1.1.0-x86_64-release.apk
           ls -lh dist/
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KestrelTun-v1.0.0-release-apks
+          name: KestrelTun-v1.1.0-release-apks
           path: dist/*.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: KestrelTun v1.0.0 (Android Multi-ABI + Universal)
+          tag_name: v1.1.0
+          name: KestrelTun v1.1.0 (Android Multi-ABI + Universal)
           body: |
-            ### KestrelTun v1.0.0 — Native Android VPN Client (Mihomo + Full TUN)
-            - **Multi-ABI + Universal Release APKs**: `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `universal` (R8-optimized)
-            - **Adaptive Icon**: Full Material You & One UI themed / glass icon support (`monochrome` layer included)
-            - **Core**: Embedded **mihomo v1.19.34** + **hev-socks5-tunnel v2.20.0** Full TUN
-            - **Protocols**: VLESS Reality, Hysteria2, TUIC, WireGuard, Trojan, VMess, Shadowsocks, SOCKS5, HTTP
-            - **Auto-Tunneling**: Fast native Go batch ping and automatic best-server switching with custom timers
-            - **Smart Split Tunneling**: One-tap regional app bypass plus manual per-app include/exclude lists
-            - **Routing**: Built-in AdBlock, regional bypass, custom domains, and automatic Wi-Fi / mobile reconnect
+            ### What's New in KestrelTun v1.1.0
+            - **Faster & More Accurate Ping**: 64 concurrent slots with 3000 ms timeout, smart priority queue (previously working servers tested first), and unified latency sync across all proxy groups.
+            - **Fixed Live Sorting & Auto-Scroll**: Properly respects live-sort settings and keeps the proxy grid pinned to the top during and after ping tests.
+            - **Redesigned Network & Settings UI**: Moved subscription management and quick link/clipboard/key import to the top of the **Network** tab, clarified routing rules, added Wi-Fi proxy address copy, and pinned selected Split Tunneling apps to the top.
+            - **AMOLED Theme Mode & 9 Visual Color Palettes**: Moved **AMOLED** into **Theme Mode** so pure black combines with any accent color, and added 9 visual color swatch icons (Material You, Ocean, Emerald, Teal, Violet, Crimson, Amber, Rose, Monochrome).
+            - **Multi-ABI + Universal APKs**: Signed R8 Release builds for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `universal`.
+
+            ### Что нового в KestrelTun v1.1.0
+            - **Быстрый и точный пинг**: 64 параллельных слота, таймаут 3000 мс, умная очередь (прошлые рабочие серверы проверяются первыми за ~0.5–1 с) и единый синхронизированный пинг между всеми группами.
+            - **Исправлены живая сортировка и автоскролл**: список серверов больше не улетает в середину во время и после проверки задержки, а чётко возвращается к верхним строкам.
+            - **Обновлённые вкладки «Сеть» и «Настройки»**: управление и добавление подписок (по ссылке, из буфера или ключом/YAML) вынесены наверх вкладки «Сеть», переработаны описания правил, добавлено копирование адреса раздачи по Wi-Fi, а выбранные приложения в Split Tunneling закрепляются сверху.
+            - **Режим AMOLED и 9 визуальных цветовых гамм**: **AMOLED** перенесён в режим темы и теперь работает с любым цветом акцента; добавлены 9 наглядных цветных иконок палитр.
+            - **Сборки под все архитектуры**: `arm64-v8a`, `armeabi-v7a`, `x86_64` и `universal`.
           files: |
-            dist/KestrelTun-v1.0.0-universal-release.apk
-            dist/KestrelTun-v1.0.0-arm64-v8a-release.apk
-            dist/KestrelTun-v1.0.0-armeabi-v7a-release.apk
-            dist/KestrelTun-v1.0.0-x86_64-release.apk
+            dist/KestrelTun-v1.1.0-universal-release.apk
+            dist/KestrelTun-v1.1.0-arm64-v8a-release.apk
+            dist/KestrelTun-v1.1.0-armeabi-v7a-release.apk
+            dist/KestrelTun-v1.1.0-x86_64-release.apk

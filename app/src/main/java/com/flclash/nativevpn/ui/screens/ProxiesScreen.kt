@@ -106,6 +106,7 @@ fun ProxiesScreen(viewModel: MainViewModel, gridState: LazyGridState = rememberL
     val autoPing by viewModel.autoPingConfig.collectAsState()
     val proxyView by viewModel.proxyViewConfig.collectAsState()
     val isTesting by viewModel.isTestingPing.collectAsState()
+    val pingFinishedVersion by viewModel.pingFinishedVersion.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val autoStatusText by viewModel.autoStatusText.collectAsState()
 
@@ -120,12 +121,47 @@ fun ProxiesScreen(viewModel: MainViewModel, gridState: LazyGridState = rememberL
         customGroups.associate { it.id to viewModel.repository.resolveNodesForCustomGroup(it, allNodes).size }
     }
 
-    var wasTesting by remember { mutableStateOf(false) }
-    LaunchedEffect(isTesting, proxyView.sortMode, activeGroupId) {
-        val justFinished = wasTesting && !isTesting
-        wasTesting = isTesting
-        if ((justFinished || !isTesting) && displayedNodes.isNotEmpty()) {
-            gridState.scrollToItem(0)
+    val topNodeId = displayedNodes.firstOrNull()?.id
+    var userDraggedDuringTest by remember { mutableStateOf(false) }
+
+    // Track if the user manually scrolls the grid during a test
+    LaunchedEffect(gridState.isScrollInProgress, isTesting) {
+        if (isTesting && gridState.isScrollInProgress) {
+            userDraggedDuringTest = true
+        }
+    }
+
+    // Reset manual-drag flag and snap to top when a new ping test starts
+    LaunchedEffect(isTesting) {
+        if (isTesting) {
+            userDraggedDuringTest = false
+            if (displayedNodes.isNotEmpty()) {
+                gridState.scrollToItem(0, 0)
+            }
+        }
+    }
+
+    // Reset scroll to top when user switches group or sort mode
+    LaunchedEffect(activeGroupId, proxyView.sortMode) {
+        if (displayedNodes.isNotEmpty()) {
+            gridState.scrollToItem(0, 0)
+        }
+    }
+
+    // Defeat Compose LazyGridState key-anchoring teleport:
+    // Whenever displayedNodes reorders during live ping (and user didn't manually scroll),
+    // unconditionally snap back to item 0 after the frame commits.
+    LaunchedEffect(displayedNodes, isTesting) {
+        if (isTesting && autoPing.sortLiveDuringTest && !userDraggedDuringTest && displayedNodes.isNotEmpty()) {
+            gridState.scrollToItem(0, 0)
+        }
+    }
+
+    // Unconditionally snap to top AFTER ping finishes AND final sorted displayedNodes has rendered
+    LaunchedEffect(pingFinishedVersion) {
+        if (pingFinishedVersion > 0 && displayedNodes.isNotEmpty()) {
+            kotlinx.coroutines.delay(90)
+            gridState.scrollToItem(0, 0)
         }
     }
 

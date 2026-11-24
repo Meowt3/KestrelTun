@@ -77,6 +77,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val isTestingPing = app.pingEngine.isTesting
     val pingCompleted = app.pingEngine.completedCount
     val pingTotal = app.pingEngine.totalCount
+    val pingFinishedVersion = app.pingEngine.finishedVersion
     val logs = app.processManager.logs
     val autoStatusText = app.autoTestScheduler.lastStatusText
 
@@ -116,7 +117,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pingStates,
         autoPingConfig,
         proxyViewConfig,
-        searchQuery
+        searchQuery,
+        isTestingPing
     ) { values ->
         @Suppress("UNCHECKED_CAST")
         val nodes = values[0] as List<ProxyNode>
@@ -126,9 +128,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val pingCfg = values[4] as AutoPingConfig
         val viewCfg = values[5] as ProxyViewConfig
         val query = (values[6] as String).trim()
+        val testing = values[7] as Boolean
 
         var list = repository.resolveNodesForGroup(groupId, nodes)
-        if (pingCfg.hideTimeouts) {
+        if (pingCfg.hideTimeouts && !testing) {
             list = list.filter { pings[it.id] !is PingState.Timeout }
         }
         if (query.isNotEmpty()) {
@@ -141,7 +144,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         when (viewCfg.sortMode) {
             ProxySortMode.DEFAULT -> list
             ProxySortMode.NAME -> list.sortedBy { it.name.lowercase(Locale.getDefault()) }
-            ProxySortMode.LATENCY -> PingEngine.sortNodesByLivePing(list, pings, true)
+            ProxySortMode.LATENCY -> {
+                val shouldSortNow = !testing || pingCfg.sortLiveDuringTest
+                PingEngine.sortNodesByLivePing(list, pings, shouldSortNow)
+            }
         }
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

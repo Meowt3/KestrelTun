@@ -2,6 +2,7 @@ package com.flclash.nativevpn.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -14,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.flclash.nativevpn.model.AppThemeMode
 import com.flclash.nativevpn.model.AppThemePalette
 
-// Calm, non-acid FlClash-aligned palettes
 private val OceanDark = darkColorScheme(
     primary = Color(0xFF7AB3E8),
     onPrimary = Color(0xFF0A223A),
@@ -42,12 +42,21 @@ private val OceanDark = darkColorScheme(
 )
 
 private val EmeraldDark = OceanDark.copy(
-    primary = Color(0xFF6EB590),
-    onPrimary = Color(0xFF0A2618),
-    primaryContainer = Color(0xFF1F382C),
-    onPrimaryContainer = Color(0xFFCBEAD9),
+    primary = Color(0xFF62C493),
+    onPrimary = Color(0xFF072617),
+    primaryContainer = Color(0xFF1C3A2C),
+    onPrimaryContainer = Color(0xFFC8F0DA),
     secondary = Color(0xFF7AB3E8),
-    secondaryContainer = Color(0xFF1B3027)
+    secondaryContainer = Color(0xFF183126)
+)
+
+private val TealDark = OceanDark.copy(
+    primary = Color(0xFF4ECBC4),
+    onPrimary = Color(0xFF062624),
+    primaryContainer = Color(0xFF183A39),
+    onPrimaryContainer = Color(0xFFC7F3F0),
+    secondary = Color(0xFF7AB3E8),
+    secondaryContainer = Color(0xFF163131)
 )
 
 private val VioletDark = OceanDark.copy(
@@ -59,14 +68,40 @@ private val VioletDark = OceanDark.copy(
     secondaryContainer = Color(0xFF242038)
 )
 
-private val AmoledDark = OceanDark.copy(
-    background = Color(0xFF000000),
-    surface = Color(0xFF000000),
-    surfaceContainerLow = Color(0xFF0A0D10),
-    surfaceContainer = Color(0xFF12161A),
-    surfaceContainerHigh = Color(0xFF191F25),
-    surfaceContainerHighest = Color(0xFF212830),
-    outlineVariant = Color(0xFF1E242B)
+private val CrimsonDark = OceanDark.copy(
+    primary = Color(0xFFE87A88),
+    onPrimary = Color(0xFF3B0D14),
+    primaryContainer = Color(0xFF472027),
+    onPrimaryContainer = Color(0xFFFBD5DA),
+    secondary = Color(0xFFE8A86B),
+    secondaryContainer = Color(0xFF3A1C22)
+)
+
+private val AmberDark = OceanDark.copy(
+    primary = Color(0xFFE8B45E),
+    onPrimary = Color(0xFF332104),
+    primaryContainer = Color(0xFF423217),
+    onPrimaryContainer = Color(0xFFFBE6C2),
+    secondary = Color(0xFF7AB3E8),
+    secondaryContainer = Color(0xFF352814)
+)
+
+private val RoseDark = OceanDark.copy(
+    primary = Color(0xFFE589B9),
+    onPrimary = Color(0xFF3A1026),
+    primaryContainer = Color(0xFF452236),
+    onPrimaryContainer = Color(0xFFFBD8EA),
+    secondary = Color(0xFFA99AE0),
+    secondaryContainer = Color(0xFF381C2C)
+)
+
+private val MonochromeDark = OceanDark.copy(
+    primary = Color(0xFFD0D7DF),
+    onPrimary = Color(0xFF12161B),
+    primaryContainer = Color(0xFF2A3038),
+    onPrimaryContainer = Color(0xFFEDF1F5),
+    secondary = Color(0xFF9AA5B1),
+    secondaryContainer = Color(0xFF22272E)
 )
 
 private val OceanLight = lightColorScheme(
@@ -96,15 +131,56 @@ private val OceanLight = lightColorScheme(
 )
 
 private val EmeraldLight = OceanLight.copy(
-    primary = Color(0xFF2D7A56),
-    primaryContainer = Color(0xFFD9EFE4),
-    onPrimaryContainer = Color(0xFF174B32)
+    primary = Color(0xFF287D56),
+    primaryContainer = Color(0xFFD5F0E3),
+    onPrimaryContainer = Color(0xFF124A30)
+)
+
+private val TealLight = OceanLight.copy(
+    primary = Color(0xFF1F7E7A),
+    primaryContainer = Color(0xFFD2F0EE),
+    onPrimaryContainer = Color(0xFF0E4745)
 )
 
 private val VioletLight = OceanLight.copy(
     primary = Color(0xFF6654A8),
     primaryContainer = Color(0xFFE6E1F7),
     onPrimaryContainer = Color(0xFF382B6B)
+)
+
+private val CrimsonLight = OceanLight.copy(
+    primary = Color(0xFFB83E50),
+    primaryContainer = Color(0xFFF9DBE0),
+    onPrimaryContainer = Color(0xFF6B1623)
+)
+
+private val AmberLight = OceanLight.copy(
+    primary = Color(0xFFA86C14),
+    primaryContainer = Color(0xFFF9E8CC),
+    onPrimaryContainer = Color(0xFF5C3804)
+)
+
+private val RoseLight = OceanLight.copy(
+    primary = Color(0xFFB0437C),
+    primaryContainer = Color(0xFFF8DCEB),
+    onPrimaryContainer = Color(0xFF631740)
+)
+
+private val MonochromeLight = OceanLight.copy(
+    primary = Color(0xFF3E4650),
+    primaryContainer = Color(0xFFE2E7EC),
+    onPrimaryContainer = Color(0xFF1D2228)
+)
+
+private fun ColorScheme.toAmoled(): ColorScheme = copy(
+    background = Color(0xFF000000),
+    surface = Color(0xFF000000),
+    surfaceContainerLow = Color(0xFF080A0D),
+    surfaceContainer = Color(0xFF0F1318),
+    surfaceContainerHigh = Color(0xFF171C22),
+    surfaceContainerHighest = Color(0xFF20262E),
+    surfaceVariant = Color(0xFF171C22),
+    outlineVariant = Color(0xFF1C2229)
 )
 
 @Composable
@@ -114,19 +190,20 @@ fun FlClashTheme(
     content: @Composable () -> Unit
 ) {
     val systemDark = isSystemInDarkTheme()
+    // Backward compatibility if a user previously saved palette == AMOLED
+    val isAmoled = themeMode == AppThemeMode.AMOLED || (palette == AppThemePalette.AMOLED && themeMode != AppThemeMode.LIGHT)
     val useDark = when (themeMode) {
         AppThemeMode.SYSTEM -> systemDark
-        AppThemeMode.DARK -> true
+        AppThemeMode.DARK, AppThemeMode.AMOLED -> true
         AppThemeMode.LIGHT -> false
     }
     val context = LocalContext.current
 
-    val colorScheme = when (palette) {
+    val baseScheme = when (palette) {
         AppThemePalette.DYNAMIC -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (useDark) {
                     val dyn = dynamicDarkColorScheme(context)
-                    // Calm matte surfaces & muted tonal containers (zero acid saturation)
                     dyn.copy(
                         primary = lerp(dyn.primary, Color(0xFF9FB8D6), 0.25f),
                         primaryContainer = lerp(dyn.primaryContainer, Color(0xFF1D2632), 0.50f),
@@ -148,14 +225,20 @@ fun FlClashTheme(
                 if (useDark) OceanDark else OceanLight
             }
         }
+        AppThemePalette.OCEAN, AppThemePalette.AMOLED -> if (useDark) OceanDark else OceanLight
         AppThemePalette.EMERALD -> if (useDark) EmeraldDark else EmeraldLight
-        AppThemePalette.OCEAN -> if (useDark) OceanDark else OceanLight
+        AppThemePalette.TEAL -> if (useDark) TealDark else TealLight
         AppThemePalette.VIOLET -> if (useDark) VioletDark else VioletLight
-        AppThemePalette.AMOLED -> if (useDark) AmoledDark else OceanLight
+        AppThemePalette.CRIMSON -> if (useDark) CrimsonDark else CrimsonLight
+        AppThemePalette.AMBER -> if (useDark) AmberDark else AmberLight
+        AppThemePalette.ROSE -> if (useDark) RoseDark else RoseLight
+        AppThemePalette.MONOCHROME -> if (useDark) MonochromeDark else MonochromeLight
     }
 
+    val finalScheme = if (isAmoled) baseScheme.toAmoled() else baseScheme
+
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = finalScheme,
         content = content
     )
 }
