@@ -25,6 +25,14 @@
 
 **KestrelTun** — лёгкий открытый VPN- и прокси-клиент для Android без рекламы и телеметрии, написанный на **Kotlin** и **Jetpack Compose**. Приложение объединяет движок маршрутизации **Mihomo (Clash.Meta)** и нативный C-мост **hev-socks5-tunnel (Full TUN)** для стабильной работы по Wi-Fi и мобильной сети.
 
+## Скриншоты
+
+<p align="center">
+  <img src="snapshots/dashboard.png" alt="KestrelTun — Панель" width="250" />&nbsp;&nbsp;
+  <img src="snapshots/routing.png" alt="KestrelTun — Сеть и правила" width="250" />&nbsp;&nbsp;
+  <img src="snapshots/settings.png" alt="KestrelTun — Настройки и темы" width="250" />
+</p>
+
 ## Скачать
 
 Последнюю подписанную Release-сборку APK можно скачать на странице [GitHub Releases](https://github.com/Meowt3/KestrelTun/releases/latest):

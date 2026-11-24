@@ -27,6 +27,14 @@
 
 **KestrelTun** is a lightweight, ad-free, open-source VPN and proxy client for Android written in **Kotlin** and **Jetpack Compose**. It combines the **Mihomo (Clash.Meta)** routing engine with a native C **hev-socks5-tunnel** Full TUN bridge for stable, low-overhead tunneling over both Wi-Fi and mobile networks.
 
+## Screenshots
+
+<p align="center">
+  <img src="snapshots/dashboard.png" alt="KestrelTun Dashboard" width="250" />&nbsp;&nbsp;
+  <img src="snapshots/routing.png" alt="KestrelTun Routing & Rules" width="250" />&nbsp;&nbsp;
+  <img src="snapshots/settings.png" alt="KestrelTun Settings & Themes" width="250" />
+</p>
+
 ## Download
 
 Get the latest signed Release APK from [GitHub Releases](https://github.com/Meowt3/KestrelTun/releases/latest):
