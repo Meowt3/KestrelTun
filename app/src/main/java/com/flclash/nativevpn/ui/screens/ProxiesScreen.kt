@@ -196,7 +196,7 @@ fun ProxiesScreen(viewModel: MainViewModel, gridState: LazyGridState = rememberL
             )
         }
 
-        // Compact Status / Actions Strip for Auto Group or Custom Group
+        // Compact Status / Actions Strip for Auto-Tunneling or Custom Group
         if (isActiveAuto || activeCustomGroup != null) {
             Row(
                 modifier = Modifier
@@ -531,7 +531,7 @@ fun ProxiesScreen(viewModel: MainViewModel, gridState: LazyGridState = rememberL
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Тест сразу при старте", style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                "Проверять серверы сразу при выборе автогруппы или подключении",
+                                "Проверять серверы сразу при выборе автотуннелинга или подключении",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -565,7 +565,7 @@ fun ProxiesScreen(viewModel: MainViewModel, gridState: LazyGridState = rememberL
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Таймер автогруппы", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text("Таймер автотуннелинга", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     IconButton(onClick = { showBaseAutoTimerDialog = false }) {
                         Icon(Icons.Rounded.Close, contentDescription = "Закрыть")
                     }

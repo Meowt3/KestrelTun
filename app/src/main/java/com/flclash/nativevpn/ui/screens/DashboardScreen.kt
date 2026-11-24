@@ -134,7 +134,7 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
             .padding(horizontal = 14.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // 1. Isolated Speed Wave Card (Native 120Hz draw-phase only wave, 0 parent recompositions!)
+        // 1. Isolated Speed Wave Card (Draw-phase only wave, 0 parent recompositions)
         SpeedWaveCard(
             isConnected = runtime.isConnected && isVisible,
             isScrollingProvider = { scrollState.isScrollInProgress },
