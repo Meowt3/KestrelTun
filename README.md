@@ -8,7 +8,7 @@
 
 [![English](https://img.shields.io/badge/Language-English-2ea44f?style=for-the-badge)](README.md) [![Русский](https://img.shields.io/badge/Язык-Русский-1f6feb?style=for-the-badge)](README_RU.md)
 
-[![Latest Release](https://img.shields.io/github/v/release/Meowt3/KestrelTun?style=flat-square&label=release&color=2ea44f)](https://github.com/Meowt3/KestrelTun/releases/latest)
+[![Latest Release](https://img.shields.io/badge/release-v1.0.0-2ea44f?style=flat-square&logo=github)](https://github.com/Meowt3/KestrelTun/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/Meowt3/KestrelTun/total?style=flat-square&logo=github)](https://github.com/Meowt3/KestrelTun/releases)
 [![Build APK](https://img.shields.io/github/actions/workflow/status/Meowt3/KestrelTun/build-apk.yml?style=flat-square&label=build)](https://github.com/Meowt3/KestrelTun/actions/workflows/build-apk.yml)
 [![Android](https://img.shields.io/badge/Android-10%2B%20%7C%20arm64--v8a-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/Meowt3/KestrelTun/releases/latest)
