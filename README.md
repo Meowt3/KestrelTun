@@ -25,7 +25,7 @@
 
 ## Overview
 
-**KestrelTun** is a lightweight, ad-free, open-source VPN and proxy client for Android written in **Kotlin** and **Jetpack Compose**. It combines the **Mihomo (Clash.Meta)** routing engine with a native C **hev-socks5-tunnel** Full TUN bridge for stable, low-overhead tunneling over both Wi-Fi and mobile networks.
+**KestrelTun** is a lightweight, ad-free, open-source native Android VPN & proxy fork based on **[FlClash](https://github.com/chen08209/FlClash)** and **[FlClashX](https://github.com/pluralplay/FlClashX)**, rewritten natively in **Kotlin** and **Jetpack Compose**. It combines the **Mihomo (Clash.Meta)** routing engine with a native C **hev-socks5-tunnel** Full TUN bridge for stable, low-overhead tunneling over both Wi-Fi and mobile networks.
 
 ## Screenshots
 
@@ -98,7 +98,7 @@ gradle assembleRelease
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) — rule-based proxy core
 - [heiher/hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) — native C TUN-to-SOCKS5 tunnel
-- [chen08209/FlClash](https://github.com/chen08209/FlClash) & **FlClashX** — UI/UX inspiration, Bento layout philosophy, and concurrent latency-testing concepts
+- [chen08209/FlClash](https://github.com/chen08209/FlClash) & [pluralplay/FlClashX](https://github.com/pluralplay/FlClashX) — base client architecture, Bento UI/UX philosophy, QuickAction toggle, and concurrent latency-testing concepts
 
 ## License
 

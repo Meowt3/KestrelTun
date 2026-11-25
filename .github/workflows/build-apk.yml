@@ -3,6 +3,9 @@ name: Build KestrelTun Release APK
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'README_RU.md'
   workflow_dispatch:
 
 permissions:

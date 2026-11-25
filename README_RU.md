@@ -23,7 +23,7 @@
 
 ## О проекте
 
-**KestrelTun** — лёгкий открытый VPN- и прокси-клиент для Android без рекламы и телеметрии, написанный на **Kotlin** и **Jetpack Compose**. Приложение объединяет движок маршрутизации **Mihomo (Clash.Meta)** и нативный C-мост **hev-socks5-tunnel (Full TUN)** для стабильной работы по Wi-Fi и мобильной сети.
+**KestrelTun** — лёгкий открытый нативный Android-форк на основе **[FlClash](https://github.com/chen08209/FlClash)** и **[FlClashX](https://github.com/pluralplay/FlClashX)** без рекламы и телеметрии, написанный на **Kotlin** и **Jetpack Compose**. Приложение объединяет движок маршрутизации **Mihomo (Clash.Meta)** и нативный C-мост **hev-socks5-tunnel (Full TUN)** для стабильной работы по Wi-Fi и мобильной сети.
 
 ## Скриншоты
 
@@ -96,7 +96,7 @@ gradle assembleRelease
 
 - [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) — ядро маршрутизации прокси
 - [heiher/hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) — нативный C-туннель TUN-to-SOCKS5
-- [chen08209/FlClash](https://github.com/chen08209/FlClash) и **FlClashX** — вдохновение для дизайна интерфейса (Bento UI), структуры экранов и схемы параллельной проверки задержки
+- [chen08209/FlClash](https://github.com/chen08209/FlClash) и [pluralplay/FlClashX](https://github.com/pluralplay/FlClashX) — основа форка, концепция Bento-интерфейса, фоновые быстрые действия и схема параллельной проверки задержки
 
 ## Лицензия
 
