@@ -17,8 +17,8 @@ import com.flclash.nativevpn.model.AppThemePalette
 
 // Comfortable, soft neutral charcoal-gray base (not overly dark) + delicate pastel accents
 private fun buildPastelDarkScheme(accent: Color): ColorScheme {
-    val container = lerp(Color(0xFF282C34), accent, 0.18f)
-    val secContainer = lerp(Color(0xFF242830), accent, 0.12f)
+    val container = lerp(Color(0xFF333944), accent, 0.18f)
+    val secContainer = lerp(Color(0xFF2E333D), accent, 0.12f)
     return darkColorScheme(
         primary = accent,
         onPrimary = Color(0xFF13171F),
@@ -28,18 +28,18 @@ private fun buildPastelDarkScheme(accent: Color): ColorScheme {
         onSecondary = Color(0xFF13171F),
         secondaryContainer = secContainer,
         onSecondaryContainer = Color(0xFFE5EAF2),
-        background = Color(0xFF14161A),
+        background = Color(0xFF1A1D22),
         onBackground = Color(0xFFF0F3F8),
-        surface = Color(0xFF14161A),
+        surface = Color(0xFF1A1D22),
         onSurface = Color(0xFFF0F3F8),
-        surfaceContainerLow = Color(0xFF191C21),
-        surfaceContainer = Color(0xFF1D2026),
-        surfaceContainerHigh = Color(0xFF262A32),
-        surfaceContainerHighest = Color(0xFF2F343E),
-        surfaceVariant = Color(0xFF262A32),
+        surfaceContainerLow = Color(0xFF20242B),
+        surfaceContainer = Color(0xFF2E333D),
+        surfaceContainerHigh = Color(0xFF2E333D),
+        surfaceContainerHighest = Color(0xFF373D49),
+        surfaceVariant = Color(0xFF2E333D),
         onSurfaceVariant = Color(0xFF9BA3B0),
         outline = Color(0xFF3E4552),
-        outlineVariant = Color(0xFF2B303A),
+        outlineVariant = Color(0xFF3A414E),
         error = Color(0xFFE89B9B),
         errorContainer = Color(0xFF3D2629),
         onErrorContainer = Color(0xFFF7D6D6)

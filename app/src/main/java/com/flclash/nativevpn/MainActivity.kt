@@ -21,6 +21,20 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -184,10 +198,22 @@ class MainActivity : ComponentActivity() {
                     },
                     floatingActionButton = {
                         if (selectedTab == 0) {
+                            val fabInteraction = remember { MutableInteractionSource() }
+                            val fabPressed by fabInteraction.collectIsPressedAsState()
+                            val fabScale by animateFloatAsState(
+                                targetValue = if (fabPressed) 0.90f else 1f,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+                                label = "fab_scale"
+                            )
                             val fabCorner by animateDpAsState(
-                                targetValue = if (runtimeState.isConnected) 18.dp else 28.dp,
+                                targetValue = if (runtimeState.isConnected) 18.dp else 30.dp,
                                 animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
                                 label = "fab_corner_morph"
+                            )
+                            val fabRot by animateFloatAsState(
+                                targetValue = if (runtimeState.isConnected) 90f else 0f,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+                                label = "fab_rot"
                             )
                             val fabBg by animateColorAsState(
                                 targetValue = MaterialTheme.colorScheme.primary,
@@ -196,47 +222,106 @@ class MainActivity : ComponentActivity() {
                             )
                             FloatingActionButton(
                                 onClick = ::toggleVpn,
+                                interactionSource = fabInteraction,
                                 shape = RoundedCornerShape(fabCorner),
                                 containerColor = fabBg,
                                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
+                                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 6.dp),
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .graphicsLayer {
+                                        scaleX = fabScale
+                                        scaleY = fabScale
+                                    }
                             ) {
                                 Icon(
                                     imageVector = if (runtimeState.isConnected) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
                                     contentDescription = if (runtimeState.isConnected) "Остановить VPN" else "Запустить VPN",
-                                    modifier = Modifier.size(26.dp)
+                                    modifier = Modifier
+                                        .size(26.dp)
+                                        .graphicsLayer { rotationZ = fabRot }
                                 )
                             }
                         }
                     },
                     snackbarHost = { SnackbarHost(snackbarHostState) },
                     bottomBar = {
-                        NavigationBar(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                            tonalElevation = 0.dp
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
                         ) {
-                            tabs.forEachIndexed { index, tab ->
-                                NavigationBarItem(
-                                    selected = selectedTab == index,
-                                    onClick = { selectedTab = index },
-                                    icon = { Icon(tab.icon, contentDescription = tab.label) },
-                                    label = {
-                                        Text(
-                                            text = tab.label,
-                                            fontSize = 11.sp,
-                                            maxLines = 1,
-                                            softWrap = false,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            Surface(
+                                shape = RoundedCornerShape(999.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainer,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f)),
+                                shadowElevation = 10.dp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(64.dp)
+                            ) {
+                                BoxWithConstraints(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(5.dp)
+                                ) {
+                                    val tabWidth = maxWidth / tabs.size
+                                    val pillOffset by animateDpAsState(
+                                        targetValue = tabWidth * selectedTab,
+                                        animationSpec = spring(
+                                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                                            stiffness = Spring.StiffnessMediumLow
+                                        ),
+                                        label = "nav_pill_offset"
                                     )
-                                )
+                                    Box(
+                                        modifier = Modifier
+                                            .offset(x = pillOffset)
+                                            .width(tabWidth)
+                                            .fillMaxHeight()
+                                            .clip(RoundedCornerShape(999.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                    )
+                                    Row(modifier = Modifier.fillMaxSize()) {
+                                        tabs.forEachIndexed { index, tab ->
+                                            val isSelected = selectedTab == index
+                                            val contentColor by animateColorAsState(
+                                                targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                animationSpec = tween(220),
+                                                label = "nav_color_$index"
+                                            )
+                                            Column(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .fillMaxHeight()
+                                                    .clip(RoundedCornerShape(999.dp))
+                                                    .clickable(
+                                                        interactionSource = remember { MutableInteractionSource() },
+                                                        indication = null
+                                                    ) { selectedTab = index },
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = tab.icon,
+                                                    contentDescription = tab.label,
+                                                    tint = contentColor,
+                                                    modifier = Modifier.size(21.dp)
+                                                )
+                                                Text(
+                                                    text = tab.label,
+                                                    fontSize = 10.5.sp,
+                                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                                    color = contentColor,
+                                                    maxLines = 1,
+                                                    softWrap = false,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -245,7 +330,9 @@ class MainActivity : ComponentActivity() {
                     AnimatedContent(
                         targetState = selectedTab,
                         transitionSpec = {
-                            (fadeIn(tween(220)) + slideInVertically(tween(260)) { it / 24 }) togetherWith fadeOut(tween(150))
+                            val dir = if (targetState > initialState) 1 else -1
+                            (fadeIn(tween(240)) + slideInHorizontally(spring(dampingRatio = 0.82f, stiffness = Spring.StiffnessMediumLow)) { dir * it / 8 }) togetherWith
+                                (fadeOut(tween(160)) + slideOutHorizontally(tween(180)) { -dir * it / 12 })
                         },
                         label = "main_tab_transition",
                         modifier = Modifier.fillMaxSize().padding(innerPadding)

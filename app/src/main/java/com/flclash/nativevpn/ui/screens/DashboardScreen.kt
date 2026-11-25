@@ -1,6 +1,15 @@
 package com.flclash.nativevpn.ui.screens
 
 import android.os.SystemClock
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -186,23 +195,34 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
                             OutboundMode.DIRECT to "Прямой"
                         ).forEach { (mode, label) ->
                             val selected = routing.outboundMode == mode
+                            val btnBg by animateColorAsState(
+                                targetValue = if (selected) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                animationSpec = tween(220),
+                                label = "mode_bg_$label"
+                            )
+                            val btnBorder by animateColorAsState(
+                                targetValue = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.55f) else MaterialTheme.colorScheme.outlineVariant,
+                                animationSpec = tween(220),
+                                label = "mode_border_$label"
+                            )
+                            val btnText by animateColorAsState(
+                                targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                animationSpec = tween(220),
+                                label = "mode_text_$label"
+                            )
                             Surface(
                                 onClick = { viewModel.setOutboundMode(mode) },
-                                shape = RoundedCornerShape(11.dp),
-                                color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                border = BorderStroke(
-                                    1.dp,
-                                    if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
-                                    else MaterialTheme.colorScheme.outlineVariant
-                                ),
+                                shape = RoundedCornerShape(999.dp),
+                                color = btnBg,
+                                border = BorderStroke(1.dp, btnBorder),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = label,
                                     fontSize = 12.5.sp,
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(horizontal = 11.dp, vertical = 8.dp),
+                                    color = btnText,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                                     maxLines = 1
                                 )
                             }
@@ -819,38 +839,61 @@ private fun RuleToggleButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.94f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "tile_scale"
+    )
+    val corner by animateDpAsState(
+        targetValue = if (active) 28.dp else 22.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+        label = "tile_corner"
+    )
+    val bgColor by animateColorAsState(
+        targetValue = if (active) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surfaceContainer,
+        animationSpec = tween(240),
+        label = "tile_bg"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.35f) else MaterialTheme.colorScheme.outlineVariant,
+        animationSpec = tween(240),
+        label = "tile_border"
+    )
+    val dotColor by animateColorAsState(
+        targetValue = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+        animationSpec = tween(240),
+        label = "tile_dot"
+    )
+
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(18.dp),
-        color = if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-        else MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(
-            1.dp,
-            if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
-            else MaterialTheme.colorScheme.outlineVariant
-        ),
-        modifier = modifier
+        interactionSource = interactionSource,
+        shape = RoundedCornerShape(corner),
+        color = bgColor,
+        border = BorderStroke(1.dp, borderColor),
+        modifier = modifier.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 11.dp),
+            modifier = Modifier.padding(horizontal = 13.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(30.dp)
-                    .clip(RoundedCornerShape(9.dp))
-                    .background(
-                        if (active) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(if (active) 14.dp else 10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = if (active) MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -871,6 +914,12 @@ private fun RuleToggleButton(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(dotColor)
+            )
         }
     }
 }

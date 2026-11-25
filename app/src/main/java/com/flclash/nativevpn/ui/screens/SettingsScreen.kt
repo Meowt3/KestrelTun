@@ -1,6 +1,14 @@
 package com.flclash.nativevpn.ui.screens
 
 import android.content.Intent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -141,38 +149,62 @@ fun SettingsScreen(viewModel: MainViewModel) {
             .padding(horizontal = 14.dp, vertical = 6.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // M3 Expressive Pill Sub-Tab Switcher
+        // M3 Expressive Sliding-Pill Sub-Tab Switcher
+        val subTabs = remember { listOf("Маршруты", "Прил.", "Авто", "Тема") }
         Surface(
             shape = RoundedCornerShape(999.dp),
             color = MaterialTheme.colorScheme.surfaceContainer,
             border = cardBorderStroke(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(46.dp)
         ) {
-            Row(
+            BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    .fillMaxSize()
+                    .padding(4.dp)
             ) {
-                listOf("Маршруты", "Прил.", "Авто", "Тема").forEachIndexed { idx, label ->
-                    val selected = settingsTab == idx
-                    Surface(
-                        onClick = { settingsTab = idx },
-                        shape = RoundedCornerShape(999.dp),
-                        color = if (selected) MaterialTheme.colorScheme.surfaceContainerHighest else Color.Transparent,
-                        modifier = Modifier.weight(if (idx == 0) 1.25f else 0.9f)
-                    ) {
+                val segWidth = maxWidth / subTabs.size
+                val segOffset by animateDpAsState(
+                    targetValue = segWidth * settingsTab,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    ),
+                    label = "settings_pill_offset"
+                )
+                Box(
+                    modifier = Modifier
+                        .offset(x = segOffset)
+                        .width(segWidth)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                )
+                Row(modifier = Modifier.fillMaxSize()) {
+                    subTabs.forEachIndexed { idx, label ->
+                        val selected = settingsTab == idx
+                        val labelColor by animateColorAsState(
+                            targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            animationSpec = tween(200),
+                            label = "set_tab_color_$idx"
+                        )
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 9.dp, horizontal = 4.dp),
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(999.dp))
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { settingsTab = idx },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = label,
-                                style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
+                                style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.5.sp),
                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = labelColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -185,7 +217,9 @@ fun SettingsScreen(viewModel: MainViewModel) {
         AnimatedContent(
             targetState = settingsTab,
             transitionSpec = {
-                (fadeIn(tween(220)) + slideInVertically(tween(260)) { it / 18 }) togetherWith fadeOut(tween(150))
+                val dir = if (targetState > initialState) 1 else -1
+                (fadeIn(tween(220)) + slideInHorizontally(spring(dampingRatio = 0.82f, stiffness = Spring.StiffnessMediumLow)) { dir * it / 8 }) togetherWith
+                    (fadeOut(tween(150)) + slideOutHorizontally(tween(160)) { -dir * it / 12 })
             },
             label = "settings_tab_transition",
             modifier = Modifier.weight(1f)
