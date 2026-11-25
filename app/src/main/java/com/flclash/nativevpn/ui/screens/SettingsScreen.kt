@@ -125,7 +125,7 @@ private fun SettingsIconBadge(icon: ImageVector, active: Boolean = true) {
             .clip(RoundedCornerShape(13.dp))
             .background(
                 if (active) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surfaceContainerHigh
+                else MaterialTheme.colorScheme.surfaceContainerHighest
             ),
         contentAlignment = Alignment.Center
     ) {

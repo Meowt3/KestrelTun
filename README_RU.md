@@ -27,9 +27,9 @@
 
 ## Скриншоты
 
-| Панель | Сеть и правила | Настройки и темы |
+| Панель | Сеть и подписки | Настройки и темы |
 | :---: | :---: | :---: |
-| ![KestrelTun — Панель](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/dashboard.png) | ![KestrelTun — Сеть и правила](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/routing.png) | ![KestrelTun — Настройки и темы](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/settings.png) |
+| ![KestrelTun — Панель](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/dashboard.png) | ![KestrelTun — Сеть и подписки](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/routing.png) | ![KestrelTun — Настройки и темы](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/settings.png) |
 
 ## Скачать
 
@@ -45,7 +45,7 @@
 ### Быстрый старт
 
 1. Скачайте и установите актуальный APK из раздела [Releases](https://github.com/Meowt3/KestrelTun/releases/latest).
-2. Перейдите в **Настройки → Подписки** и добавьте ссылку на подписку (Clash YAML или список серверов).
+2. Перейдите в **Сеть → Подписки** и добавьте ссылку на подписку (Clash YAML или список серверов).
 3. Выберите нужный сервер или включите **Автотуннелинг** на вкладке **Прокси**, затем нажмите **Подключиться** на главной панели.
 
 ## Возможности

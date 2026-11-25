@@ -29,9 +29,9 @@
 
 ## Screenshots
 
-| Dashboard | Routing & Rules | Settings & Themes |
+| Dashboard | Network & Subscriptions | Settings & Themes |
 | :---: | :---: | :---: |
-| ![KestrelTun Dashboard](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/dashboard.png) | ![KestrelTun Routing & Rules](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/routing.png) | ![KestrelTun Settings & Themes](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/settings.png) |
+| ![KestrelTun Dashboard](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/dashboard.png) | ![KestrelTun Network & Subscriptions](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/routing.png) | ![KestrelTun Settings & Themes](https://raw.githubusercontent.com/Meowt3/KestrelTun/main/snapshots/settings.png) |
 
 ## Download
 
@@ -47,7 +47,7 @@ Get the latest signed Release APK from [GitHub Releases](https://github.com/Meow
 ### Quick Start
 
 1. Download and install the latest APK from [Releases](https://github.com/Meowt3/KestrelTun/releases/latest).
-2. Open **Settings → Subscriptions** and paste your Clash YAML or proxy subscription link (or import individual share links).
+2. Open **Network → Subscriptions** and paste your Clash YAML or proxy subscription link (or import individual share links).
 3. Select a server or enable **Auto-Tunneling** on the **Proxies** tab, then tap **Connect** on the **Dashboard**.
 
 ## Features

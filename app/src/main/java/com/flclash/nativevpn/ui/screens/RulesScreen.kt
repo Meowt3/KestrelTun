@@ -78,7 +78,7 @@ private fun NetIconBadge(icon: ImageVector, active: Boolean) {
             .clip(RoundedCornerShape(14.dp))
             .background(
                 if (active) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surfaceContainerHigh
+                else MaterialTheme.colorScheme.surfaceContainerHighest
             ),
         contentAlignment = Alignment.Center
     ) {

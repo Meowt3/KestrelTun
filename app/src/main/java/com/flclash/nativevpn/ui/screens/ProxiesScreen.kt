@@ -410,7 +410,7 @@ fun ProxiesScreen(viewModel: MainViewModel, gridState: LazyGridState = rememberL
                 ) {
                     Text(
                         text = if (allNodes.isEmpty()) {
-                            "Серверов пока нет. Добавьте подписку во вкладке «Настройки»."
+                            "Серверов пока нет. Добавьте подписку во вкладке «Сеть»."
                         } else {
                             "В этом фильтре нет серверов. Сбросьте поиск или фильтр Timeout."
                         },
