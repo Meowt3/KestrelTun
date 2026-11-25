@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KestrelTun</string>
+    <string name="shortcut_toggle_short">Переключение</string>
+    <string name="shortcut_toggle_long">Переключение VPN (вкл/выкл)</string>
 </resources>

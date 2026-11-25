@@ -83,6 +83,7 @@ jobs:
             - **Fixed Live Sorting & Auto-Scroll**: Properly respects live-sort settings and keeps the proxy grid pinned to the top during and after ping tests.
             - **Redesigned Network & Settings UI**: Moved subscription management and quick link/clipboard/key import to the top of the **Network** tab, clarified routing rules, added Wi-Fi proxy address copy, and pinned selected Split Tunneling apps to the top.
             - **AMOLED Theme Mode & 9 Visual Color Palettes**: Moved **AMOLED** into **Theme Mode** so pure black combines with any accent color, and added 9 visual color swatch icons (Material You, Ocean, Emerald, Teal, Violet, Crimson, Amber, Rose, Monochrome).
+            - **Samsung Modes & Routines (Background Toggle)**: Added a single silent **Toggle** app action (`Theme.NoDisplay` + isolated task) so routines switch VPN ON/OFF in the background without minimizing the active app.
             - **Multi-ABI + Universal APKs**: Signed R8 Release builds for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `universal`.
 
             ### Что нового в KestrelTun v1.1.0
@@ -90,6 +91,7 @@ jobs:
             - **Исправлены живая сортировка и автоскролл**: список серверов больше не улетает в середину во время и после проверки задержки, а чётко возвращается к верхним строкам.
             - **Обновлённые вкладки «Сеть» и «Настройки»**: управление и добавление подписок (по ссылке, из буфера или ключом/YAML) вынесены наверх вкладки «Сеть», переработаны описания правил, добавлено копирование адреса раздачи по Wi-Fi, а выбранные приложения в Split Tunneling закрепляются сверху.
             - **Режим AMOLED и 9 визуальных цветовых гамм**: **AMOLED** перенесён в режим темы и теперь работает с любым цветом акцента; добавлены 9 наглядных цветных иконок палитр.
+            - **Сценарии Samsung (фоновое переключение)**: добавлено единое действие **«Переключение»** (вкл/выкл в фоне через невидимую `QuickActionActivity` без сворачивания текущего приложения).
             - **Сборки под все архитектуры**: `arm64-v8a`, `armeabi-v7a`, `x86_64` и `universal`.
           files: |
             dist/KestrelTun-v1.1.0-universal-release.apk

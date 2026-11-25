@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="toggle_vpn"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_toggle"
+        android:shortcutShortLabel="@string/shortcut_toggle_short"
+        android:shortcutLongLabel="@string/shortcut_toggle_long">
+        <intent
+            android:action="com.kestreltun.vpn.action.TOGGLE"
+            android:targetPackage="com.kestreltun.vpn"
+            android:targetClass="com.flclash.nativevpn.QuickActionActivity" />
+    </shortcut>
+</shortcuts>
