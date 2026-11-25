@@ -91,7 +91,7 @@ import com.flclash.nativevpn.ui.components.cardBorderStroke
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-private val ProxyTileShape = RoundedCornerShape(20.dp)
+private val ProxyTileShape = RoundedCornerShape(24.dp)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -831,15 +831,16 @@ private fun ProxyNodeTile(
                     val (pingLabel, pingColor) = when (pingState) {
                         is PingState.Success -> {
                             val ms = pingState.latencyMs
+                            val accent = MaterialTheme.colorScheme.primary
                             val c = when {
-                                ms < 120 -> androidx.compose.ui.graphics.Color(0xFF6FBC91)
-                                ms < 260 -> androidx.compose.ui.graphics.Color(0xFFCFA859)
-                                else -> androidx.compose.ui.graphics.Color(0xFFD67A7A)
+                                ms < 200 -> accent
+                                ms < 450 -> accent.copy(alpha = 0.78f)
+                                else -> accent.copy(alpha = 0.58f)
                             }
                             "${ms} ms" to c
                         }
                         is PingState.Testing -> "..." to MaterialTheme.colorScheme.onSurfaceVariant
-                        is PingState.Timeout -> "Timeout" to androidx.compose.ui.graphics.Color(0xFFD67A7A)
+                        is PingState.Timeout -> "Timeout" to MaterialTheme.colorScheme.error
                         is PingState.Idle, null -> "—" to MaterialTheme.colorScheme.onSurfaceVariant
                     }
                     Text(

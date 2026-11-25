@@ -8,7 +8,7 @@
 
 [![English](https://img.shields.io/badge/Language-English-2ea44f?style=for-the-badge)](README.md) [![Русский](https://img.shields.io/badge/Язык-Русский-1f6feb?style=for-the-badge)](README_RU.md)
 
-[![Latest Release](https://img.shields.io/badge/release-v1.1.0-2ea44f?style=flat-square&logo=github)](https://github.com/Meowt3/KestrelTun/releases/latest)
+[![Latest Release](https://img.shields.io/badge/release-v1.2.0-2ea44f?style=flat-square&logo=github)](https://github.com/Meowt3/KestrelTun/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/Meowt3/KestrelTun/total?style=flat-square&logo=github)](https://github.com/Meowt3/KestrelTun/releases)
 [![Build APK](https://img.shields.io/github/actions/workflow/status/Meowt3/KestrelTun/build-apk.yml?style=flat-square&label=build)](https://github.com/Meowt3/KestrelTun/actions/workflows/build-apk.yml)
 [![Android](https://img.shields.io/badge/Android-10%2B%20%7C%20Universal-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/Meowt3/KestrelTun/releases/latest)
@@ -39,10 +39,10 @@ Get the latest signed Release APK from [GitHub Releases](https://github.com/Meow
 
 | Architecture | Package | Best For |
 | --- | --- | --- |
-| **Universal** | [`KestrelTun-v1.1.0-universal-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.1.0-universal-release.apk) | Any Android 10+ device (if unsure) |
-| **`arm64-v8a`** | [`KestrelTun-v1.1.0-arm64-v8a-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.1.0-arm64-v8a-release.apk) | Modern 64-bit phones (recommended, smaller size) |
-| **`armeabi-v7a`** | [`KestrelTun-v1.1.0-armeabi-v7a-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.1.0-armeabi-v7a-release.apk) | Older 32-bit Android phones & Android TV boxes |
-| **`x86_64`** | [`KestrelTun-v1.1.0-x86_64-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.1.0-x86_64-release.apk) | Emulators, Chromebooks, WSA & x86_64 tablets |
+| **Universal** | [`KestrelTun-v1.2.0-universal-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.2.0-universal-release.apk) | Any Android 10+ device (if unsure) |
+| **`arm64-v8a`** | [`KestrelTun-v1.2.0-arm64-v8a-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.2.0-arm64-v8a-release.apk) | Modern 64-bit phones (recommended, smaller size) |
+| **`armeabi-v7a`** | [`KestrelTun-v1.2.0-armeabi-v7a-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.2.0-armeabi-v7a-release.apk) | Older 32-bit Android phones & Android TV boxes |
+| **`x86_64`** | [`KestrelTun-v1.2.0-x86_64-release.apk`](https://github.com/Meowt3/KestrelTun/releases/latest/download/KestrelTun-v1.2.0-x86_64-release.apk) | Emulators, Chromebooks, WSA & x86_64 tablets |
 
 ### Quick Start
 

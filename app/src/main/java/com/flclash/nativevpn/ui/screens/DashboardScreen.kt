@@ -153,7 +153,7 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Card(
-                    shape = RoundedCornerShape(22.dp),
+                    shape = RoundedCornerShape(28.dp),
                     border = cardBorderStroke(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                     modifier = Modifier.fillMaxWidth()
@@ -223,7 +223,7 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Card(
-                    shape = RoundedCornerShape(22.dp),
+                    shape = RoundedCornerShape(28.dp),
                     border = cardBorderStroke(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                     modifier = Modifier
@@ -295,7 +295,7 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
                                 null -> "—"
                             }
                             val geminiColor = when (networkCheck.geminiReachable) {
-                                true -> Color(0xFF6FBC91)
+                                true -> MaterialTheme.colorScheme.primary
                                 false -> Color(0xFFD67A7A)
                                 null -> MaterialTheme.colorScheme.onSurfaceVariant
                             }
@@ -321,7 +321,7 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
         val primarySub = subscriptions.firstOrNull()
         if (primarySub != null) {
             Card(
-                shape = RoundedCornerShape(22.dp),
+                shape = RoundedCornerShape(28.dp),
                 border = cardBorderStroke(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                 modifier = Modifier.fillMaxWidth()
@@ -516,7 +516,7 @@ private fun SpeedWaveCard(
     }
 
     Card(
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(28.dp),
         border = cardBorderStroke(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier
@@ -656,7 +656,7 @@ private fun SessionTimerCard(
     }
 
     Card(
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(28.dp),
         border = cardBorderStroke(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier.fillMaxWidth()
@@ -707,7 +707,7 @@ private fun TrafficDonutCard(
     val upBytes = upBytesProvider()
 
     Card(
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(28.dp),
         border = cardBorderStroke(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier.fillMaxWidth()
