@@ -39,6 +39,8 @@ class FlClashVpnService : VpnService() {
     private var vpnInterface: ParcelFileDescriptor? = null
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
     private var lastTransportType: Int = -1
+    private val underlyingNetworks = HashSet<Network>()
+    @Volatile private var networkLostAtElapsedMs: Long = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -338,6 +340,44 @@ class FlClashVpnService : VpnService() {
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
                 .build()
             val cb = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    val lostDurationMs = synchronized(underlyingNetworks) {
+                        underlyingNetworks.add(network)
+                        if (networkLostAtElapsedMs > 0L) {
+                            val d = SystemClock.elapsedRealtime() - networkLostAtElapsedMs
+                            networkLostAtElapsedMs = 0L
+                            d
+                        } else {
+                            0L
+                        }
+                    }
+                    if (lostDurationMs >= com.flclash.nativevpn.core.AutoTestScheduler.NETWORK_LOSS_MIN_MS &&
+                        _runtimeState.value.isConnected
+                    ) {
+                        val app = application as FlClashApp
+                        serviceScope.launch {
+                            if (app.apiClient.isCoreAlive()) {
+                                app.apiClient.closeAllConnections()
+                                app.processManager.appendLog("[NET] Сеть восстановлена после отвала (${lostDurationMs / 1000}с)")
+                            }
+                            app.autoTestScheduler.onNetworkRecovered(
+                                reason = "восстановление сети",
+                                lostDurationMs = lostDurationMs,
+                                transportChanged = false
+                            )
+                        }
+                    }
+                }
+
+                override fun onLost(network: Network) {
+                    synchronized(underlyingNetworks) {
+                        underlyingNetworks.remove(network)
+                        if (underlyingNetworks.isEmpty() && networkLostAtElapsedMs == 0L) {
+                            networkLostAtElapsedMs = SystemClock.elapsedRealtime()
+                        }
+                    }
+                }
+
                 override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
                     val transport = when {
                         caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkCapabilities.TRANSPORT_WIFI
@@ -347,11 +387,16 @@ class FlClashVpnService : VpnService() {
                     if (lastTransportType != -1 && lastTransportType != transport && _runtimeState.value.isConnected) {
                         val app = application as FlClashApp
                         serviceScope.launch {
+                            val label = if (transport == NetworkCapabilities.TRANSPORT_WIFI) "Wi-Fi" else "LTE/5G"
                             if (app.apiClient.isCoreAlive()) {
                                 app.apiClient.closeAllConnections()
-                                val label = if (transport == NetworkCapabilities.TRANSPORT_WIFI) "Wi-Fi" else "LTE/5G"
                                 app.processManager.appendLog("[NET] Смена сети -> $label, сброшены зависшие соединения")
                             }
+                            app.autoTestScheduler.onNetworkRecovered(
+                                reason = "смена сети -> $label",
+                                lostDurationMs = 0L,
+                                transportChanged = true
+                            )
                         }
                     }
                     lastTransportType = transport
@@ -366,6 +411,8 @@ class FlClashVpnService : VpnService() {
         val cb = networkCallback ?: return
         networkCallback = null
         lastTransportType = -1
+        synchronized(underlyingNetworks) { underlyingNetworks.clear() }
+        networkLostAtElapsedMs = 0L
         runCatching {
             val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             cm?.unregisterNetworkCallback(cb)

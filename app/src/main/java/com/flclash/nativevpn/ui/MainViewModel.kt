@@ -161,6 +161,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         app.processManager.clearLogs()
     }
 
+    fun refreshLogs() {
+        app.processManager.syncLogsToFlow()
+    }
+
     fun buildDiagnosticLogText(): String {
         val sb = StringBuilder()
         val rt = runtimeState.value
@@ -172,8 +176,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         sb.appendLine("Outbound Mode: ${routing.outboundMode}")
         sb.appendLine("AdBlock: ${routing.adBlockEnabled}, RU Bypass: ${routing.ruBypassEnabled}, Gemini: ${routing.geminiBypassEnabled} (${routing.geminiBypassMode})")
         sb.appendLine("Nodes: ${allNodes.value.size}, Subscriptions: ${subscriptions.value.size}")
-        sb.appendLine("=== Core Logs (${logs.value.size} lines) ===")
-        logs.value.forEach { sb.appendLine(it) }
+        val snapshot = app.processManager.getLogsSnapshot()
+        sb.appendLine("=== Core Logs (${snapshot.size} lines) ===")
+        snapshot.forEach { sb.appendLine(it) }
         return sb.toString()
     }
 
@@ -301,6 +306,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun selectNode(node: ProxyNode) {
+        app.autoTestScheduler.notifyManualSelection()
         repository.setSelectedNode(node)
         FlClashVpnService.updateActiveNode(node.name)
         viewModelScope.launch(Dispatchers.IO) {

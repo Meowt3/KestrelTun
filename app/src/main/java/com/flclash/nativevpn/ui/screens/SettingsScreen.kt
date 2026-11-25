@@ -689,6 +689,7 @@ private fun AutoSettingsTab(viewModel: MainViewModel) {
     var showAdvancedAuto by remember { mutableStateOf(false) }
     var showLogsDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    LaunchedEffect(Unit) { viewModel.refreshLogs() }
 
     Column(
         modifier = Modifier
@@ -740,6 +741,14 @@ private fun AutoSettingsTab(viewModel: MainViewModel) {
                             )
                         }
                     }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+                    SettingSwitchRow(
+                        title = "Автопроверка при обрыве",
+                        subtitle = "Переключает сервер при зависании или смене сети",
+                        checked = autoPing.autoRecoverOnDrop,
+                        onCheckedChange = { checked -> viewModel.updateAutoPing { it.copy(autoRecoverOnDrop = checked) } }
+                    )
                 }
 
                 TextButton(onClick = { showAdvancedAuto = !showAdvancedAuto }, modifier = Modifier.align(Alignment.End)) {
@@ -790,7 +799,10 @@ private fun AutoSettingsTab(viewModel: MainViewModel) {
         }
 
         OutlinedButton(
-            onClick = { showLogsDialog = true },
+            onClick = {
+                viewModel.refreshLogs()
+                showLogsDialog = true
+            },
             shape = RoundedCornerShape(999.dp),
             modifier = Modifier.fillMaxWidth()
         ) {

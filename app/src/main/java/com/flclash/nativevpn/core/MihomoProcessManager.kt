@@ -143,8 +143,20 @@ class MihomoProcessManager(private val context: Context) {
         synchronized(logBuffer) {
             if (logBuffer.size >= 60) logBuffer.removeFirst()
             logBuffer.addLast(line)
+            if (_logs.subscriptionCount.value > 0) {
+                _logs.value = logBuffer.toList()
+            }
+        }
+    }
+
+    fun syncLogsToFlow() {
+        synchronized(logBuffer) {
             _logs.value = logBuffer.toList()
         }
+    }
+
+    fun getLogsSnapshot(): List<String> = synchronized(logBuffer) {
+        logBuffer.toList()
     }
 
     fun clearLogs() {

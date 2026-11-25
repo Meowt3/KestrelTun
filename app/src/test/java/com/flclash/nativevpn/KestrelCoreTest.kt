@@ -1,14 +1,17 @@
 package com.flclash.nativevpn
 
+import com.flclash.nativevpn.core.AutoTestScheduler
 import com.flclash.nativevpn.core.PingEngine
 import com.flclash.nativevpn.model.AppThemeMode
 import com.flclash.nativevpn.model.AppThemePalette
+import com.flclash.nativevpn.model.AutoPingConfig
 import com.flclash.nativevpn.model.PingState
 import com.flclash.nativevpn.model.ProxyNode
 import com.flclash.nativevpn.model.ThemeConfig
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -60,12 +63,10 @@ class KestrelCoreTest {
     @Test
     fun themeConfig_supportsAmoledModeWithAllPalettesAndLegacyDeserialization() {
         val json = Json { ignoreUnknownKeys = true }
-        // Legacy saved config with palette = AMOLED must still deserialize safely
         val legacy = json.decodeFromString<ThemeConfig>("""{"mode":"DARK","palette":"AMOLED"}""")
         assertEquals(AppThemeMode.DARK, legacy.mode)
         assertEquals(AppThemePalette.AMOLED, legacy.palette)
 
-        // New AMOLED mode combined with any color palette
         val modern = ThemeConfig(mode = AppThemeMode.AMOLED, palette = AppThemePalette.CRIMSON)
         val encoded = json.encodeToString(modern)
         val decoded = json.decodeFromString<ThemeConfig>(encoded)
@@ -91,5 +92,47 @@ class KestrelCoreTest {
         )
         val ordered = PingEngine.orderNodesForSmartQueue(nodes, prev)
         assertEquals(listOf("fast", "slow", "new", "dead"), ordered.map { it.id })
+    }
+
+    @Test
+    fun smartWatchdog_detectsOnlyRealTrafficStall() {
+        // Idle -> never stalled
+        assertFalse(AutoTestScheduler.isTrafficStalled(0L, 0L))
+        // Small noise -> never stalled
+        assertFalse(AutoTestScheduler.isTrafficStalled(1024L, 0L))
+        // Normal bidirectional traffic -> never stalled
+        assertFalse(AutoTestScheduler.isTrafficStalled(8192L, 4096L))
+        // Outgoing requests without response -> stalled
+        assertTrue(AutoTestScheduler.isTrafficStalled(4096L, 0L))
+        assertTrue(AutoTestScheduler.isTrafficStalled(2048L, 512L))
+    }
+
+    @Test
+    fun networkRecovery_ignoresMicroDropsAndEnforcesCooldownAndBackoff() {
+        // Micro-drop < 5s without transport change -> ignored
+        assertFalse(AutoTestScheduler.shouldTriggerNetworkRecovery(lostDurationMs = 2_000L, transportChanged = false))
+        assertFalse(AutoTestScheduler.shouldTriggerNetworkRecovery(lostDurationMs = 4_999L, transportChanged = false))
+        // Real outage >= 5s or Wi-Fi <-> LTE switch -> triggers
+        assertTrue(AutoTestScheduler.shouldTriggerNetworkRecovery(lostDurationMs = 5_000L, transportChanged = false))
+        assertTrue(AutoTestScheduler.shouldTriggerNetworkRecovery(lostDurationMs = 0L, transportChanged = true))
+
+        // Cooldown 120s
+        assertFalse(AutoTestScheduler.isRecoveryCooldownActive(lastRecoveryMs = 0L, nowMs = 50_000L))
+        assertTrue(AutoTestScheduler.isRecoveryCooldownActive(lastRecoveryMs = 10_000L, nowMs = 90_000L))
+        assertFalse(AutoTestScheduler.isRecoveryCooldownActive(lastRecoveryMs = 10_000L, nowMs = 130_000L))
+
+        // Bounded backoff & retry limits
+        assertEquals(3, AutoTestScheduler.POST_VERIFY_TOP_CANDIDATES)
+        assertEquals(2, AutoTestScheduler.MAX_RECOVERY_RESCANS)
+        assertEquals(10_000L, AutoTestScheduler.backoffDelayForRetry(0))
+        assertEquals(25_000L, AutoTestScheduler.backoffDelayForRetry(1))
+        assertEquals(25_000L, AutoTestScheduler.backoffDelayForRetry(5))
+    }
+
+    @Test
+    fun autoPingConfig_legacyJsonDefaultsAutoRecoverOnDropTrue() {
+        val json = Json { ignoreUnknownKeys = true }
+        val decoded = json.decodeFromString<AutoPingConfig>("""{"enabled":true,"intervalMinutes":15}""")
+        assertTrue(decoded.autoRecoverOnDrop)
     }
 }

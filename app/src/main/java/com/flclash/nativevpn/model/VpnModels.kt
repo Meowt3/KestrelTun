@@ -121,6 +121,7 @@ data class AutoPingConfig(
     val pauseWhenScreenOff: Boolean = true,
     val respectBatterySaver: Boolean = true,
     val smartCheckCurrentFirst: Boolean = true,
+    val autoRecoverOnDrop: Boolean = true,
     val goodLatencyThresholdMs: Int = 150,
     val toleranceMs: Int = 10,
     val sortLiveDuringTest: Boolean = true,

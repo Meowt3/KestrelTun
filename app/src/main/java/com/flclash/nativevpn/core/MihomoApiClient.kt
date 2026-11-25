@@ -28,6 +28,7 @@ class MihomoApiClient(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
 
+    // Shared OkHttpClient base: derived clients share one ConnectionPool & Dispatcher
     private val client = OkHttpClient.Builder()
         .dispatcher(Dispatcher().apply {
             maxRequests = 96
@@ -38,13 +39,11 @@ class MihomoApiClient(
         .writeTimeout(4, TimeUnit.SECONDS)
         .build()
 
-    private val groupDelayClient = OkHttpClient.Builder()
-        .connectTimeout(2, TimeUnit.SECONDS)
+    private val groupDelayClient = client.newBuilder()
         .readTimeout(15, TimeUnit.SECONDS)
-        .writeTimeout(4, TimeUnit.SECONDS)
         .build()
 
-    private val streamClient = OkHttpClient.Builder()
+    private val streamClient = client.newBuilder()
         .connectTimeout(3, TimeUnit.SECONDS)
         .readTimeout(0, TimeUnit.MILLISECONDS)
         .build()

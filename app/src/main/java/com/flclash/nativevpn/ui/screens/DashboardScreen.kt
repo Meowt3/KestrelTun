@@ -521,15 +521,22 @@ private fun SpeedWaveCard(
             return@LaunchedEffect
         }
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            var isFlatZero = samples.all { it == 0f }
             while (isActive) {
                 if (!isScrollingProvider()) {
                     val stats = trafficProvider()
                     val bps = (stats.downloadBytesPerSec + stats.uploadBytesPerSec).toFloat()
-                    for (i in 0 until pointCount - 1) {
-                        samples[i] = samples[i + 1]
+                    if (bps > 0f || !isFlatZero) {
+                        var anyNonZero = bps > 0f
+                        for (i in 0 until pointCount - 1) {
+                            val nextVal = samples[i + 1]
+                            samples[i] = nextVal
+                            if (nextVal > 0f) anyNonZero = true
+                        }
+                        samples[pointCount - 1] = bps
+                        isFlatZero = !anyNonZero
+                        drawVersion.longValue++
                     }
-                    samples[pointCount - 1] = bps
-                    drawVersion.longValue++
                 }
                 delay(500L)
             }

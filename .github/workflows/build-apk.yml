@@ -63,39 +63,37 @@ jobs:
       - name: Prepare APK Artifacts
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-universal-release.apk dist/KestrelTun-v1.2.0-universal-release.apk
-          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk dist/KestrelTun-v1.2.0-arm64-v8a-release.apk
-          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk dist/KestrelTun-v1.2.0-armeabi-v7a-release.apk
-          cp app/build/outputs/apk/release/app-x86_64-release.apk dist/KestrelTun-v1.2.0-x86_64-release.apk
+          cp app/build/outputs/apk/release/app-universal-release.apk dist/KestrelTun-v1.2.1-universal-release.apk
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk dist/KestrelTun-v1.2.1-arm64-v8a-release.apk
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk dist/KestrelTun-v1.2.1-armeabi-v7a-release.apk
+          cp app/build/outputs/apk/release/app-x86_64-release.apk dist/KestrelTun-v1.2.1-x86_64-release.apk
           ls -lh dist/
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KestrelTun-v1.2.0-release-apks
+          name: KestrelTun-v1.2.1-release-apks
           path: dist/*.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.2.0
-          name: KestrelTun v1.2.0 (Material 3 Expressive + Pastel Themes)
+          tag_name: v1.2.1
+          name: KestrelTun v1.2.1 (Smart Auto-Recovery + Battery Optimizations)
           body: |
-            ### What's New in KestrelTun v1.2.0
-            - **Material 3 Expressive Redesign**: Generous 24–28 dp rounded cards, morphing Connect button (circle ↔ squircle with spring animation), smooth tab transitions, and animated accordions.
-            - **Soft Neutral Gray Dark Theme + 9 Pastel Color Palettes**: Lighter, eye-friendly charcoal surfaces (`#14161A` / `#1D2026`) with minimal pastel accents (Material You, Sky, Mint, Aqua, Lavender, Peach, Rose, Cream, Mist), plus true-black **AMOLED** mode compatible with every palette.
-            - **Unified Accent Styling**: Connect button, primary actions, toggles, and all ping latency indicators follow the active pastel accent color.
-            - **Streamlined Network & Tabbed Settings**: **Network** now focuses strictly on Subscriptions (with a clean link-only Add sheet) and Wi-Fi proxy sharing; **Settings** is cleanly organized into 4 animated sub-tabs (**Routes / Apps / Auto / Theme**).
-            - **Multi-ABI + Universal APKs**: Signed R8 Release builds for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `universal`.
+            ### What's New in KestrelTun v1.2.1
+            - **Smart Drop Detection (Zero-Traffic Watchdog)**: In Auto-Tunneling mode, passively monitors OS traffic counters while the screen is on — sleeps when idle or downloading normally, and triggers a 3-strike confirmation check only when outgoing requests receive no response.
+            - **Verified Recovery with Top-3 Fallback**: After an auto-test, verifies the newly selected node (1.5s settle + live check) and falls back through top-3 fresh candidates before running at most 2 bounded rescans with exponential backoff (10s → 25s), underlying Wi-Fi/mobile network validation, and a 2-minute anti-loop cooldown.
+            - **Network Switch & Outage Recovery**: Ignores micro-drops under 5 seconds; on real outages or Wi-Fi ↔ LTE/5G switches, waits 3s for routes/DNS, clears stale sockets, and verifies the active node before rescanning.
+            - **Safe Battery & Memory Optimizations**: Balanced Mihomo `keep-alive` (`60s / 30s`, keeping background push notifications instant while waking the radio 4× less), shared `OkHttpClient` connection pool, idle canvas skip on the speed graph, and lazy log-list allocations.
 
-            ### Что нового в KestrelTun v1.2.0
-            - **Дизайн Material 3 Expressive и плавные анимации**: увеличенные скругления карточек (24–28 dp), пружинный морфинг кнопки подключения (круг ↔ сквиркл), плавные переходы вкладок и мягкое раскрытие блоков.
-            - **Мягкая серо-графитовая тема + 9 пастельных гамм**: комфортные нейтрально-серые поверхности (`#14161A` / `#1D2026`) и 9 деликатных пастельных оттенков (плюс чистый **AMOLED** поверх любой палитры) в виде лаконичных цветных кружков.
-            - **Единый акцентный цвет**: кнопка подключения, основные действия и все значения пинга окрашиваются в выбранную пастельную гамму.
-            - **Упрощённая вкладка «Сеть» и «Настройки» по вкладкам**: в «Сети» остались только профили подписок (с чистым окном добавления строго по ссылке) и раздача по Wi-Fi; все остальные параметры разнесены по 4 вкладкам в «Настройках» (**Маршруты / Прил. / Авто / Тема**).
-            - **Сборки под все архитектуры**: `arm64-v8a`, `armeabi-v7a`, `x86_64` и `universal`.
+            ### Что нового в KestrelTun v1.2.1
+            - **Умная автопроверка при обрыве (Watchdog)**: в режиме Автотуннелинга пассивно отслеживает системные счётчики трафика при включённом экране — спит в простое и при нормальной загрузке, а при зависании запускает подтверждение из 3 проверок подряд, отсекая микролаги.
+            - **Пост-проверка восстановления и фоллбек по топ-3**: после авто-теста проверяет выбранный сервер (1.5 сек + контрольный запрос) и при необходимости перебирает топ-3 свежих кандидатов без лишнего полного перескана; максимум 2 повторных теста с нарастающей паузой (10с → 25с), проверкой мобильной сети/Wi-Fi и паузой 2 мин от зацикливания.
+            - **Реакция на смену и восстановление сети**: игнорирует микропадения короче 5 секунд; при переключении Wi-Fi ↔ LTE/5G или возврате сети ждёт 3 сек, сбрасывает зависшие сокеты и проверяет текущий узел.
+            - **Безопасные оптимизации батареи и памяти**: сбалансированный `keep-alive` в Mihomo (`60 / 30` сек — push-уведомления в фоне работают мгновенно, а модем будится в 4 раза реже), общий пул `OkHttpClient`, пропуск пустых перерисовок графика скорости и ленивое обновление списка логов.
           files: |
-            dist/KestrelTun-v1.2.0-universal-release.apk
-            dist/KestrelTun-v1.2.0-arm64-v8a-release.apk
-            dist/KestrelTun-v1.2.0-armeabi-v7a-release.apk
-            dist/KestrelTun-v1.2.0-x86_64-release.apk
+            dist/KestrelTun-v1.2.1-universal-release.apk
+            dist/KestrelTun-v1.2.1-arm64-v8a-release.apk
+            dist/KestrelTun-v1.2.1-armeabi-v7a-release.apk
+            dist/KestrelTun-v1.2.1-x86_64-release.apk
