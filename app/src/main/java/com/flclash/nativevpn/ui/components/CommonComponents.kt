@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,15 +36,16 @@ fun PingBadge(
     plainText: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val accent = MaterialTheme.colorScheme.primary
     val (label, bgColor, textColor) = when (state) {
         is PingState.Success -> {
             val ms = state.latencyMs
             val color = when {
-                ms < 120 -> Color(0xFF6FBC91)
-                ms < 260 -> Color(0xFFCFA859)
-                else -> Color(0xFFD67A7A)
+                ms < 200 -> accent
+                ms < 450 -> accent.copy(alpha = 0.78f)
+                else -> accent.copy(alpha = 0.58f)
             }
-            Triple("${ms} ms", color.copy(alpha = 0.14f), color)
+            Triple("${ms} ms", accent.copy(alpha = 0.14f), color)
         }
         is PingState.Testing -> Triple(
             "...",
@@ -54,8 +54,8 @@ fun PingBadge(
         )
         is PingState.Timeout -> Triple(
             "Timeout",
-            Color(0xFFD67A7A).copy(alpha = 0.14f),
-            Color(0xFFD67A7A)
+            MaterialTheme.colorScheme.error.copy(alpha = 0.14f),
+            MaterialTheme.colorScheme.error
         )
         is PingState.Idle, null -> Triple(
             "—",
@@ -69,11 +69,11 @@ fun PingBadge(
             modifier.clickable(onClick = onClick)
         } else {
             modifier
-                .clip(RoundedCornerShape(if (compact) 7.dp else 9.dp))
+                .clip(RoundedCornerShape(if (compact) 10.dp else 12.dp))
                 .background(bgColor)
                 .clickable(onClick = onClick)
                 .padding(
-                    horizontal = if (compact) 6.dp else 9.dp,
+                    horizontal = if (compact) 7.dp else 10.dp,
                     vertical = if (compact) 3.dp else 5.dp
                 )
         },
@@ -83,7 +83,7 @@ fun PingBadge(
             CircularProgressIndicator(
                 modifier = Modifier.size(if (compact) 11.dp else 13.dp),
                 strokeWidth = 1.8.dp,
-                color = textColor
+                color = accent
             )
         } else {
             Text(

@@ -11,6 +11,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -174,19 +184,21 @@ class MainActivity : ComponentActivity() {
                     },
                     floatingActionButton = {
                         if (selectedTab == 0) {
+                            val fabCorner by animateDpAsState(
+                                targetValue = if (runtimeState.isConnected) 18.dp else 28.dp,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+                                label = "fab_corner_morph"
+                            )
+                            val fabBg by animateColorAsState(
+                                targetValue = MaterialTheme.colorScheme.primary,
+                                animationSpec = tween(320),
+                                label = "fab_bg"
+                            )
                             FloatingActionButton(
                                 onClick = ::toggleVpn,
-                                shape = RoundedCornerShape(17.dp),
-                                containerColor = if (runtimeState.isConnected) {
-                                    MaterialTheme.colorScheme.primaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.surfaceContainerHigh
-                                },
-                                contentColor = if (runtimeState.isConnected) {
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                },
+                                shape = RoundedCornerShape(fabCorner),
+                                containerColor = fabBg,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
                                 elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
                             ) {
                                 Icon(
@@ -230,8 +242,15 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     val proxiesGridState = rememberLazyGridState()
-                    Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                        when (selectedTab) {
+                    AnimatedContent(
+                        targetState = selectedTab,
+                        transitionSpec = {
+                            (fadeIn(tween(220)) + slideInVertically(tween(260)) { it / 24 }) togetherWith fadeOut(tween(150))
+                        },
+                        label = "main_tab_transition",
+                        modifier = Modifier.fillMaxSize().padding(innerPadding)
+                    ) { tab ->
+                        when (tab) {
                             0 -> DashboardScreen(viewModel = viewModel, isVisible = true)
                             1 -> ProxiesScreen(viewModel = viewModel, gridState = proxiesGridState)
                             2 -> RulesScreen(viewModel = viewModel)
