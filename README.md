@@ -4,7 +4,7 @@
 
 # KestrelTun
 
-**Open-source native Android VPN & proxy client built on Mihomo (Clash.Meta) and Full TUN.**
+**Open-source native Android proxy & rule-based network client built on Mihomo (Clash.Meta) and Full TUN.**
 
 [![English](https://img.shields.io/badge/Language-English-2ea44f?style=for-the-badge)](README.md) [![Русский](https://img.shields.io/badge/Язык-Русский-1f6feb?style=for-the-badge)](README_RU.md)
 
@@ -15,17 +15,17 @@
 [![Core](https://img.shields.io/badge/mihomo-v1.19.34-blue?style=flat-square)](https://github.com/MetaCubeX/mihomo)
 [![License](https://img.shields.io/github/license/Meowt3/KestrelTun?style=flat-square)](LICENSE)
 
-[Download](#download) · [Features](#features) · [Supported Protocols](#supported-protocols) · [Architecture](#architecture) · [Build from Source](#build-from-source)
+[Download](#download) · [Features](#features) · [Supported Protocols](#supported-protocols) · [Architecture](#architecture) · [Build from Source](#build-from-source) · [Disclaimer](#disclaimer)
 
 </div>
 
-> **Русский:** Открытый нативный Android VPN-клиент на ядре **Mihomo (Clash.Meta)** и **hev-socks5-tunnel (Full TUN)**. Поддержка **VLESS Reality**, **Hysteria2**, **TUIC**, **WireGuard**, **Trojan**, **VMess** и **Shadowsocks**, **автотуннелинг** с быстрым пакетным пингом, умное разделение трафика (Split Tunneling) и встроенный AdBlock. Подробное описание на русском — в [README_RU.md](README_RU.md).
+> **Русский:** Открытый нативный Android-клиент для маршрутизации трафика и работы с собственными прокси-серверами на ядре **Mihomo (Clash.Meta)** и **hev-socks5-tunnel (Full TUN)**. Поддержка **VLESS Reality**, **Hysteria2**, **TUIC**, **WireGuard**, **Trojan**, **VMess** и **Shadowsocks**, **автотуннелинг**, разделение трафика по приложениям и фильтрация рекламы. Подробное описание — в [README_RU.md](README_RU.md).
 
 ---
 
 ## Overview
 
-**KestrelTun** is a lightweight, ad-free, open-source native Android VPN & proxy fork based on **[FlClash](https://github.com/chen08209/FlClash)** and **[FlClashX](https://github.com/pluralplay/FlClashX)**, rewritten natively in **Kotlin** and **Jetpack Compose**. It combines the **Mihomo (Clash.Meta)** routing engine with a native C **hev-socks5-tunnel** Full TUN bridge for stable, low-overhead tunneling over both Wi-Fi and mobile networks.
+**KestrelTun** is a lightweight, ad-free, open-source native Android network and proxy client written from scratch in **Kotlin** and **Jetpack Compose**, inspired by the interface and concepts of **[FlClash](https://github.com/chen08209/FlClash)** and **[FlClashX](https://github.com/pluralplay/FlClashX)**. It combines the **Mihomo (Clash.Meta)** routing engine with a native C **hev-socks5-tunnel** Full TUN bridge for stable, low-overhead tunneling over Wi-Fi and mobile networks.
 
 ## Screenshots
 
@@ -47,25 +47,25 @@ Get the latest signed Release APK from [GitHub Releases](https://github.com/Meow
 ### Quick Start
 
 1. Download and install the latest APK from [Releases](https://github.com/Meowt3/KestrelTun/releases/latest).
-2. Open **Network → Subscriptions** and paste your Clash YAML or proxy subscription link (or import individual share links).
-3. Select a server or enable **Auto-Tunneling** on the **Proxies** tab, then tap **Connect** on the **Dashboard**.
+2. Open **Network → Subscriptions** and add your own Clash YAML or proxy subscription URL.
+3. Select a node or enable **Auto-Tunneling** on the **Proxies** tab, then tap **Connect** on the **Dashboard**.
 
 ## Features
 
-- **Auto-Tunneling**: Built-in **Auto** mode and custom auto-tunneling groups powered by native Go batch latency checks (`/group/{name}/delay`, `unified-delay`). Automatically switches to the lowest-latency server on startup, on a configurable timer, or on manual refresh.
-- **Full TUN Networking**: Native `mihomo` + `hev-socks5-tunnel` TUN stack with IPv4/IPv6 capture, `mapdns`, proxy-routed DoH, and automatic connection reset when switching between Wi-Fi and mobile data.
-- **Smart Split Tunneling**: One-tap regional app bypass (banking, government, and local marketplace apps) alongside full manual per-app include/exclude lists.
-- **Rule-Based Routing & AdBlock**: Built-in AdBlock (`category-ads-all.mrs`), regional bypass rules (`category-ru.mrs` + `geoip/ru.mrs`), dedicated AI/Gemini routing with QUIC fallback, and custom Always-VPN / Always-Direct domain lists.
-- **Subscription Management**: Automatic subscription refresh on app launch, manual sync, traffic quota and expiration bar (`Subscription-Userinfo`), and support for both Clash YAML and URI-based subscriptions.
-- **Native Material You Interface**: Clean Bento-style dashboard with Light, Dark, and AMOLED themes, real-time speed graph, live connections inspector, YAML config preview, and core log export.
-- **Battery-Friendly Operation**: R8-optimized release binary, lifecycle-aware UI updates, and eco mode that pauses background auto-tunneling checks while the screen is off.
+- **Auto-Tunneling**: Built-in **Auto** mode and custom auto-tunneling groups with 64-slot concurrent latency checks, smart priority queue (previously responsive nodes tested first), and automatic switching to the lowest-latency server.
+- **Full TUN Networking**: Native `mihomo` + `hev-socks5-tunnel` TUN stack with IPv4/IPv6 capture, `mapdns`, encrypted DoH resolution, and automatic connection reset on Wi-Fi ↔ mobile handoff.
+- **Per-App Split Tunneling**: Flexible per-app include/exclude routing lists with one-tap local-app selection.
+- **Rule-Based Routing & AdBlock**: Built-in ad/tracker filtering (`category-ads-all.mrs`), direct routing for local domains (`DIRECT`), encrypted DoH routing rules, and custom domain rule lists.
+- **Subscription Management**: Automatic profile refresh on startup, manual sync, traffic quota and expiration bar (`Subscription-Userinfo`), and local Wi-Fi proxy sharing (Allow LAN).
+- **Material 3 Expressive Interface**: Soft neutral-gray dark theme, pure-black **AMOLED** mode, Light mode, 9 pastel accent palettes, floating pill navigation, smooth spring animations, live connections inspector, YAML preview, and core log export.
+- **Background Quick Toggle**: Supports Android App Shortcuts and silent background toggle actions without minimizing the active foreground app.
 
 ## Supported Protocols
 
 | Category | Protocols & Transports |
 | --- | --- |
 | **Modern Proxies** | `VLESS` (Reality, TLS, XTLS-Vision, WS, gRPC, HTTPUpgrade, h2), `Hysteria` / `Hysteria2`, `TUIC` |
-| **Classic & VPN** | `WireGuard`, `Trojan`, `VMess`, `Shadowsocks` / `SSR`, `SOCKS5`, `HTTP` |
+| **Classic & Tunnel** | `WireGuard`, `Trojan`, `VMess`, `Shadowsocks` / `SSR`, `SOCKS5`, `HTTP` |
 | **Subscriptions** | Clash / Mihomo YAML, Base64 link lists, plain URI share links |
 
 ## Architecture
@@ -79,7 +79,7 @@ Get the latest signed Release APK from [GitHub Releases](https://github.com/Meow
 
 ## Build from Source
 
-Every push to `main` automatically builds and publishes a signed Release APK via [GitHub Actions](.github/workflows/build-apk.yml).
+Every push to `main` automatically runs unit tests and builds signed Release APKs via [GitHub Actions](.github/workflows/build-apk.yml).
 
 To build locally (requires **JDK 17**, **Android SDK 35**, and **Gradle 8.9**):
 
@@ -94,11 +94,20 @@ curl -fsSL https://github.com/MetaCubeX/mihomo/releases/download/v1.19.34/mihomo
 gradle assembleRelease
 ```
 
-## Acknowledgments
+## Disclaimer & Privacy
 
-- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) — rule-based proxy core
-- [heiher/hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) — native C TUN-to-SOCKS5 tunnel
-- [chen08209/FlClash](https://github.com/chen08209/FlClash) & [pluralplay/FlClashX](https://github.com/pluralplay/FlClashX) — base client architecture, Bento UI/UX philosophy, QuickAction toggle, and concurrent latency-testing concepts
+- **Client Software Only**: KestrelTun is an independent, open-source networking client intended for managing user-owned proxy servers, testing network routing, and protecting traffic on untrusted networks. It does **not** bundle, sell, or provide any VPN servers or subscription services.
+- **User Responsibility**: Users are solely responsible for the configurations they import and for complying with all applicable laws and regulations in their jurisdiction.
+- **Privacy**: KestrelTun contains no analytics, telemetry, or ads; all settings and profiles stay locally on your device. See [PRIVACY.md](PRIVACY.md).
+- **Trademarks**: All third-party names and trademarks belong to their respective owners. KestrelTun is not affiliated with or endorsed by any third-party brand.
+
+## Acknowledgments & Third-Party Licenses
+
+- [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) (`GPL-3.0`) — rule-based proxy core
+- [heiher/hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) (`MIT`) — native C TUN-to-SOCKS5 tunnel
+- [chen08209/FlClash](https://github.com/chen08209/FlClash) & [pluralplay/FlClashX](https://github.com/pluralplay/FlClashX) (`GPL-3.0`) — UI/UX design inspiration, Bento layout philosophy, background quick action pattern, and concurrent latency-testing concepts
+
+Full third-party license attributions are listed in [NOTICE](NOTICE).
 
 ## License
 

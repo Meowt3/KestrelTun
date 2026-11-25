@@ -1,6 +1,7 @@
 package com.flclash.nativevpn.ui.screens
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.slideInHorizontally
@@ -56,6 +57,7 @@ import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lan
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Public
@@ -299,8 +301,8 @@ private fun RoutesSettingsTab(viewModel: MainViewModel) {
                 ) {
                     SettingsIconBadge(Icons.Rounded.AutoAwesome, routing.geminiBypassEnabled)
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Обход для Gemini и AI", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        Text("Стабильная работа Gemini и AI Studio", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Выделенный DNS (DoH)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text("Маршрутизация защищённых DoH-запросов", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Switch(checked = routing.geminiBypassEnabled, onCheckedChange = viewModel::toggleGeminiBypass)
                 }
@@ -322,7 +324,7 @@ private fun RoutesSettingsTab(viewModel: MainViewModel) {
                             OutlinedTextField(
                                 value = routing.geminiCustomDns,
                                 onValueChange = { dns -> viewModel.updateRoutingFields { it.copy(geminiCustomDns = dns) } },
-                                label = { Text("Адрес DNS / DoH для Gemini") },
+                                label = { Text("Адрес DNS / DoH") },
                                 singleLine = true,
                                 shape = RoundedCornerShape(18.dp),
                                 modifier = Modifier.fillMaxWidth()
@@ -348,8 +350,8 @@ private fun RoutesSettingsTab(viewModel: MainViewModel) {
                 ) {
                     SettingsIconBadge(Icons.Rounded.Public, routing.ruBypassEnabled)
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Российские сайты напрямую", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        Text(".ru, банки, Госуслуги и маркетплейсы без VPN", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Локальные домены (DIRECT)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text("Локальные зоны (.ru / .рф) напрямую", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Switch(checked = routing.ruBypassEnabled, onCheckedChange = viewModel::toggleRuBypass)
                 }
@@ -589,8 +591,8 @@ private fun AppsSettingsTab(viewModel: MainViewModel) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Разделение по приложениям", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         Text(
-                            if (splitTunnel.enabled) "Выбрано: ${splitTunnel.selectedPackages.size} (${if (splitTunnel.bypassSelected) "в обход VPN" else "только VPN"})"
-                            else "Пускайте банки и нужные программы в обход VPN",
+                            if (splitTunnel.enabled) "Выбрано: ${splitTunnel.selectedPackages.size} (${if (splitTunnel.bypassSelected) "напрямую" else "через прокси"})"
+                            else "Настройте приложения для прямого маршрута",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -604,7 +606,7 @@ private fun AppsSettingsTab(viewModel: MainViewModel) {
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Автовыбор РФ-приложений", fontWeight = FontWeight.SemiBold)
+                    Text("Автовыбор локальных приложений", fontWeight = FontWeight.SemiBold)
                 }
 
                 if (splitTunnel.enabled) {
@@ -612,7 +614,7 @@ private fun AppsSettingsTab(viewModel: MainViewModel) {
                         FilterChip(
                             selected = splitTunnel.bypassSelected,
                             onClick = { viewModel.updateSplitTunnel { it.copy(bypassSelected = true) } },
-                            label = { Text("В обход VPN") },
+                            label = { Text("Напрямую (DIRECT)") },
                             modifier = Modifier.weight(1f)
                         )
                         FilterChip(
@@ -867,6 +869,7 @@ private fun AutoSettingsTab(viewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThemeSettingsTab(viewModel: MainViewModel) {
     val themeConfig by viewModel.themeConfig.collectAsState()
@@ -987,6 +990,80 @@ private fun ThemeSettingsTab(viewModel: MainViewModel) {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        var showAboutSheet by remember { mutableStateOf(false) }
+        val aboutContext = LocalContext.current
+
+        OutlinedButton(
+            onClick = { showAboutSheet = true },
+            shape = RoundedCornerShape(999.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Rounded.Info, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("О приложении и лицензии")
+        }
+
+        if (showAboutSheet) {
+            val aboutSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ModalBottomSheet(
+                onDismissRequest = { showAboutSheet = false },
+                sheetState = aboutSheetState,
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 28.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("KestrelTun v1.2.0", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                            Text("Лицензия: GNU GPL-3.0", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                        }
+                        IconButton(onClick = { showAboutSheet = false }) {
+                            Icon(Icons.Rounded.Close, contentDescription = "Закрыть")
+                        }
+                    }
+
+                    Text(
+                        text = "Открытый сетевой и прокси-клиент без встроенных серверов, рекламы и телеметрии. Все конфигурации и данные хранятся локально на устройстве. Пользователь самостоятельно отвечает за используемые настройки и соблюдение применимого законодательства.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+
+                    Text("Используемые открытые компоненты:", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = "• MetaCubeX/mihomo (GPL-3.0)\n• heiher/hev-socks5-tunnel (MIT)\n• AndroidX, Jetpack Compose, OkHttp, SnakeYAML (Apache-2.0)\n• Интерфейс вдохновлён FlClash и FlClashX (GPL-3.0)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Button(
+                        onClick = {
+                            runCatching {
+                                aboutContext.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Meowt3/KestrelTun"))
+                                )
+                            }
+                        },
+                        shape = RoundedCornerShape(999.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Исходный код на GitHub", fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

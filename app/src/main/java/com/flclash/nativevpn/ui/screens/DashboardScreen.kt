@@ -311,8 +311,8 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
                                 modifier = Modifier.weight(1f)
                             )
                             val geminiLabel = when (networkCheck.geminiReachable) {
-                                true -> "Gemini OK"
-                                false -> "Нет доступа"
+                                true -> "DoH OK"
+                                false -> "Ограничен"
                                 null -> "—"
                             }
                             val geminiColor = when (networkCheck.geminiReachable) {
@@ -464,7 +464,7 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
                 modifier = Modifier.weight(1f)
             )
             RuleToggleButton(
-                title = "Обход РФ",
+                title = "Локальные",
                 subtitle = if (routing.ruBypassEnabled) ".ru напрямую" else "Через VPN",
                 icon = Icons.Rounded.AltRoute,
                 active = routing.ruBypassEnabled,
@@ -477,8 +477,8 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
             horizontalArrangement = Arrangement.spacedBy(9.dp)
         ) {
             RuleToggleButton(
-                title = "Gemini",
-                subtitle = if (routing.geminiBypassEnabled) "VPN + DoH" else "Выкл",
+                title = "DoH-маршрут",
+                subtitle = if (routing.geminiBypassEnabled) "Защищённый DNS" else "Выкл",
                 icon = Icons.Rounded.AutoAwesome,
                 active = routing.geminiBypassEnabled,
                 onClick = { viewModel.toggleGeminiBypass(!routing.geminiBypassEnabled) },
@@ -486,7 +486,7 @@ fun DashboardScreen(viewModel: MainViewModel, isVisible: Boolean = true) {
             )
             RuleToggleButton(
                 title = "Приложения",
-                subtitle = if (splitTunnel.enabled) "Обход: ${splitTunnel.selectedPackages.size}" else "Выкл",
+                subtitle = if (splitTunnel.enabled) "Выбрано: ${splitTunnel.selectedPackages.size}" else "Выкл",
                 icon = Icons.Rounded.Apps,
                 active = splitTunnel.enabled,
                 onClick = { viewModel.toggleSplitTunnel(!splitTunnel.enabled) },

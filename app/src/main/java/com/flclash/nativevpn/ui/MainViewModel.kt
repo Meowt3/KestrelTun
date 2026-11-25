@@ -232,7 +232,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun toggleSplitTunnel(enabled: Boolean) {
         repository.updateSplitTunnelConfig { it.copy(enabled = enabled) }
-        _uiMessage.value = if (enabled) "Обход приложений включён (применится при переподключении)" else "Обход приложений выключен"
+        _uiMessage.value = if (enabled) "Разделение по приложениям включено (применится при переподключении)" else "Разделение по приложениям выключено"
     }
 
     fun smartSelectRuApps() {
@@ -265,7 +265,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     selectedPackages = (current.selectedPackages + matched).distinct()
                 )
             }
-            _uiMessage.value = "Умный выбор РФ: добавлено ${matched.size} прил. (переподключи VPN)"
+            _uiMessage.value = "Автовыбор локальных приложений: добавлено ${matched.size} прил. (переподключи VPN)"
         }
     }
 

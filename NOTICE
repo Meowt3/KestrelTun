@@ -1,0 +1,45 @@
+KestrelTun — Third-Party Licenses & Acknowledgments (NOTICE)
+============================================================
+
+KestrelTun is free and open-source software licensed under the
+GNU General Public License v3.0 (see LICENSE).
+
+This project bundles or depends on the following open-source components:
+
+1. Mihomo (Clash.Meta)
+   - Repository: https://github.com/MetaCubeX/mihomo
+   - License: GNU General Public License v3.0 (GPL-3.0)
+   - Usage: Embedded rule-based proxy core binary (libmihomo.so)
+
+2. hev-socks5-tunnel
+   - Repository: https://github.com/heiher/hev-socks5-tunnel
+   - License: MIT License
+   - Usage: Native C TUN-to-SOCKS5 bridge (libhev-socks5-tunnel.so)
+
+3. AndroidX, Jetpack Compose & Material 3
+   - Copyright: The Android Open Source Project
+   - License: Apache License 2.0
+
+4. Kotlin Standard Library, Coroutines & Serialization
+   - Copyright: JetBrains s.r.o.
+   - License: Apache License 2.0
+
+5. OkHttp
+   - Copyright: Square, Inc.
+   - License: Apache License 2.0
+
+6. SnakeYAML
+   - License: Apache License 2.0
+
+Design & Architecture Inspiration (Not Copied Code):
+- FlClash (https://github.com/chen08209/FlClash, GPL-3.0)
+- FlClashX (https://github.com/pluralplay/FlClashX, GPL-3.0)
+KestrelTun is independently written in native Kotlin and Jetpack Compose,
+inspired by the Bento UI layout and concurrent latency-testing concepts of
+FlClash and FlClashX.
+
+Trademark Notice:
+All product names, logos, and brands mentioned in documentation or code
+are the property of their respective owners. KestrelTun is an independent
+open-source project and is not affiliated with or endorsed by Google,
+Samsung, MetaCubeX, or any third-party service provider.
