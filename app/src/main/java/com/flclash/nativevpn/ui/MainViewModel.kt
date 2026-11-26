@@ -175,6 +175,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         sb.appendLine("Selected UI Node: ${selectedNodeName.value ?: "-"} (id=${selectedNodeId.value ?: "-"})")
         sb.appendLine("Outbound Mode: ${routing.outboundMode}")
         sb.appendLine("AdBlock: ${routing.adBlockEnabled}, RU Bypass: ${routing.ruBypassEnabled}, Gemini: ${routing.geminiBypassEnabled} (${routing.geminiBypassMode})")
+        sb.appendLine("Auto-Tunneling: ${if (repository.isGroupAuto(activeGroupId.value)) "ON" else "OFF"}, RecoverOnDrop: ${autoPingConfig.value.autoRecoverOnDrop}, Status: ${autoStatusText.value}")
         sb.appendLine("Nodes: ${allNodes.value.size}, Subscriptions: ${subscriptions.value.size}")
         val snapshot = app.processManager.getLogsSnapshot()
         sb.appendLine("=== Core Logs (${snapshot.size} lines) ===")

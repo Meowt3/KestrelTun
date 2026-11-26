@@ -1,6 +1,8 @@
 package com.flclash.nativevpn
 
+import android.net.NetworkCapabilities
 import com.flclash.nativevpn.core.AutoTestScheduler
+import com.flclash.nativevpn.vpn.FlClashVpnService
 import com.flclash.nativevpn.core.PingEngine
 import com.flclash.nativevpn.model.AppThemeMode
 import com.flclash.nativevpn.model.AppThemePalette
@@ -134,5 +136,61 @@ class KestrelCoreTest {
         val json = Json { ignoreUnknownKeys = true }
         val decoded = json.decodeFromString<AutoPingConfig>("""{"enabled":true,"intervalMinutes":15}""")
         assertTrue(decoded.autoRecoverOnDrop)
+    }
+
+    @Test
+    fun proxyLogDetector_matchesRealProxyErrorsAndIgnoresDirectOrCanceled() {
+        assertTrue(
+            AutoTestScheduler.isProxyDialError(
+                """level=warning msg="[TCP] dial PROXY (match Match/) 127.0.0.1:55374 --> api.tiktokv.com:443 error: 31.77.3.2:443 connect error: context deadline exceeded""""
+            )
+        )
+        assertTrue(
+            AutoTestScheduler.isProxyDialError(
+                """level=warning msg="[UDP] dial PROXY (match Match/) error: i/o timeout""""
+            )
+        )
+        // DIRECT errors (RU Bypass) must never trigger proxy failover
+        assertFalse(
+            AutoTestScheduler.isProxyDialError(
+                """level=warning msg="[TCP] dial DIRECT (match DomainSuffix/ru) 127.0.0.1:50196 --> yandex.ru:7 error: dial tcp 77.88.55.88:7: i/o timeout""""
+            )
+        )
+        // Canceled sockets on app close or switch must be ignored
+        assertFalse(
+            AutoTestScheduler.isProxyDialError(
+                """level=warning msg="[TCP] dial PROXY (match Match/) error: context canceled""""
+            )
+        )
+
+        val window = ArrayDeque<Long>()
+        assertFalse(AutoTestScheduler.recordErrorBurst(window, 1_000L))
+        assertFalse(AutoTestScheduler.recordErrorBurst(window, 5_000L))
+        assertTrue(AutoTestScheduler.recordErrorBurst(window, 10_000L))
+        // Cleared after burst trigger; spaced > 15s should not trigger
+        assertFalse(AutoTestScheduler.recordErrorBurst(window, 20_000L))
+        assertFalse(AutoTestScheduler.recordErrorBurst(window, 40_000L))
+        assertFalse(AutoTestScheduler.recordErrorBurst(window, 50_000L))
+    }
+
+    @Test
+    fun smartWatchdog_enforcesSwitchGracePeriodAndHealthyCheckCooldown() {
+        assertFalse(AutoTestScheduler.isWithinSwitchGracePeriod(0L, 10_000L))
+        assertTrue(AutoTestScheduler.isWithinSwitchGracePeriod(10_000L, 14_000L))
+        assertFalse(AutoTestScheduler.isWithinSwitchGracePeriod(10_000L, 16_000L))
+
+        assertFalse(AutoTestScheduler.isHealthyCheckCooldownActive(0L, 10_000L))
+        assertTrue(AutoTestScheduler.isHealthyCheckCooldownActive(10_000L, 40_000L))
+        assertFalse(AutoTestScheduler.isHealthyCheckCooldownActive(10_000L, 55_000L))
+    }
+
+    @Test
+    fun effectiveTransport_prefersWifiOverDualWifiCellularWithoutFlapping() {
+        val wifi = NetworkCapabilities.TRANSPORT_WIFI
+        val cell = NetworkCapabilities.TRANSPORT_CELLULAR
+        assertEquals(wifi, FlClashVpnService.resolveEffectiveTransport(listOf(wifi, cell)))
+        assertEquals(wifi, FlClashVpnService.resolveEffectiveTransport(listOf(cell, wifi)))
+        assertEquals(cell, FlClashVpnService.resolveEffectiveTransport(listOf(cell)))
+        assertEquals(-1, FlClashVpnService.resolveEffectiveTransport(emptyList()))
     }
 }

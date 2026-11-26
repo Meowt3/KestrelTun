@@ -15,6 +15,7 @@ class MihomoProcessManager(private val context: Context) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var mihomoProcess: Process? = null
+    @Volatile var onCoreLogLine: ((String) -> Unit)? = null
 
     private val logBuffer = ArrayDeque<String>(64)
     private val _logs = MutableStateFlow<List<String>>(emptyList())
@@ -133,6 +134,7 @@ class MihomoProcessManager(private val context: Context) {
                 proc.inputStream.bufferedReader().useLines { lines ->
                     lines.forEach { line ->
                         appendLog("[$tag] $line")
+                        runCatching { onCoreLogLine?.invoke(line) }
                     }
                 }
             }

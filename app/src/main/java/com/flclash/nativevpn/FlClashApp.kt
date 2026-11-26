@@ -44,6 +44,9 @@ class FlClashApp : Application() {
                 processManager.appendLog(line)
             }
         )
+        processManager.onCoreLogLine = { line ->
+            autoTestScheduler.onCoreLogLine(line)
+        }
 
         FlClashVpnService.updateBinaryAvailability(
             hasCore = processManager.findMihomoBinary() != null,

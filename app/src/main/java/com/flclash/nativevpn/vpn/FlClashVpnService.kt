@@ -39,7 +39,7 @@ class FlClashVpnService : VpnService() {
     private var vpnInterface: ParcelFileDescriptor? = null
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
     private var lastTransportType: Int = -1
-    private val underlyingNetworks = HashSet<Network>()
+    private val underlyingTransports = HashMap<Network, Int>()
     @Volatile private var networkLostAtElapsedMs: Long = 0L
 
     override fun onCreate() {
@@ -341,8 +341,8 @@ class FlClashVpnService : VpnService() {
                 .build()
             val cb = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
-                    val lostDurationMs = synchronized(underlyingNetworks) {
-                        underlyingNetworks.add(network)
+                    val lostDurationMs = synchronized(underlyingTransports) {
+                        underlyingTransports.putIfAbsent(network, -1)
                         if (networkLostAtElapsedMs > 0L) {
                             val d = SystemClock.elapsedRealtime() - networkLostAtElapsedMs
                             networkLostAtElapsedMs = 0L
@@ -370,11 +370,23 @@ class FlClashVpnService : VpnService() {
                 }
 
                 override fun onLost(network: Network) {
-                    synchronized(underlyingNetworks) {
-                        underlyingNetworks.remove(network)
-                        if (underlyingNetworks.isEmpty() && networkLostAtElapsedMs == 0L) {
+                    val switchedTo = synchronized(underlyingTransports) {
+                        underlyingTransports.remove(network)
+                        if (underlyingTransports.isEmpty() && networkLostAtElapsedMs == 0L) {
                             networkLostAtElapsedMs = SystemClock.elapsedRealtime()
+                            -1
+                        } else {
+                            val effective = resolveEffectiveTransport(underlyingTransports.values)
+                            if (effective != -1 && lastTransportType != -1 && effective != lastTransportType) {
+                                lastTransportType = effective
+                                effective
+                            } else {
+                                -1
+                            }
                         }
+                    }
+                    if (switchedTo != -1 && _runtimeState.value.isConnected) {
+                        notifyEffectiveTransportSwitch(switchedTo)
                     }
                 }
 
@@ -384,22 +396,22 @@ class FlClashVpnService : VpnService() {
                         caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkCapabilities.TRANSPORT_CELLULAR
                         else -> return
                     }
-                    if (lastTransportType != -1 && lastTransportType != transport && _runtimeState.value.isConnected) {
-                        val app = application as FlClashApp
-                        serviceScope.launch {
-                            val label = if (transport == NetworkCapabilities.TRANSPORT_WIFI) "Wi-Fi" else "LTE/5G"
-                            if (app.apiClient.isCoreAlive()) {
-                                app.apiClient.closeAllConnections()
-                                app.processManager.appendLog("[NET] Смена сети -> $label, сброшены зависшие соединения")
-                            }
-                            app.autoTestScheduler.onNetworkRecovered(
-                                reason = "смена сети -> $label",
-                                lostDurationMs = 0L,
-                                transportChanged = true
-                            )
+                    val switchedTo = synchronized(underlyingTransports) {
+                        underlyingTransports[network] = transport
+                        val effective = resolveEffectiveTransport(underlyingTransports.values)
+                        if (effective == -1) {
+                            -1
+                        } else if (lastTransportType != -1 && effective != lastTransportType) {
+                            lastTransportType = effective
+                            effective
+                        } else {
+                            lastTransportType = effective
+                            -1
                         }
                     }
-                    lastTransportType = transport
+                    if (switchedTo != -1 && _runtimeState.value.isConnected) {
+                        notifyEffectiveTransportSwitch(switchedTo)
+                    }
                 }
             }
             cm.registerNetworkCallback(req, cb)
@@ -407,11 +419,27 @@ class FlClashVpnService : VpnService() {
         }
     }
 
+    private fun notifyEffectiveTransportSwitch(transport: Int) {
+        val app = application as FlClashApp
+        serviceScope.launch {
+            val label = if (transport == NetworkCapabilities.TRANSPORT_WIFI) "Wi-Fi" else "LTE/5G"
+            if (app.apiClient.isCoreAlive()) {
+                app.apiClient.closeAllConnections()
+                app.processManager.appendLog("[NET] Смена сети -> $label, сброшены зависшие соединения")
+            }
+            app.autoTestScheduler.onNetworkRecovered(
+                reason = "смена сети -> $label",
+                lostDurationMs = 0L,
+                transportChanged = true
+            )
+        }
+    }
+
     private fun unregisterNetworkChangeCallback() {
         val cb = networkCallback ?: return
         networkCallback = null
         lastTransportType = -1
-        synchronized(underlyingNetworks) { underlyingNetworks.clear() }
+        synchronized(underlyingTransports) { underlyingTransports.clear() }
         networkLostAtElapsedMs = 0L
         runCatching {
             val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
@@ -430,6 +458,12 @@ class FlClashVpnService : VpnService() {
     }
 
     companion object {
+        fun resolveEffectiveTransport(transports: Collection<Int>): Int = when {
+            transports.contains(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkCapabilities.TRANSPORT_WIFI
+            transports.contains(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkCapabilities.TRANSPORT_CELLULAR
+            else -> -1
+        }
+
         const val ACTION_START = "com.flclash.nativevpn.START"
         const val ACTION_STOP = "com.flclash.nativevpn.STOP"
         const val ACTION_RELOAD = "com.flclash.nativevpn.RELOAD"

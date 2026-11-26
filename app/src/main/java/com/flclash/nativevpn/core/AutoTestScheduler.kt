@@ -39,8 +39,19 @@ class AutoTestScheduler(
     private val recoveryMutex = Mutex()
     private val manualSelectionVersion = AtomicInteger(0)
 
+    private val proxyErrorTimestamps = ArrayDeque<Long>()
+
     @Volatile
     private var lastEmergencyScanMillis: Long = 0L
+
+    @Volatile
+    private var lastNodeSwitchMillis: Long = 0L
+
+    @Volatile
+    private var lastHealthyCheckMillis: Long = 0L
+
+    @Volatile
+    private var lastNoNetLogMillis: Long = 0L
 
     private val _lastAutoRunMillis = MutableStateFlow(0L)
     val lastAutoRunMillis: StateFlow<Long> = _lastAutoRunMillis.asStateFlow()
@@ -50,6 +61,51 @@ class AutoTestScheduler(
 
     fun notifyManualSelection() {
         manualSelectionVersion.incrementAndGet()
+        markNodeSwitched()
+    }
+
+    private fun markNodeSwitched() {
+        lastNodeSwitchMillis = System.currentTimeMillis()
+        clearProxyErrors()
+    }
+
+    private fun clearProxyErrors() {
+        synchronized(proxyErrorTimestamps) {
+            proxyErrorTimestamps.clear()
+        }
+    }
+
+    /**
+     * Zero-traffic reactive drop detector fed directly by mihomo stdout lines.
+     * Detects bursts of real PROXY dial errors (>= 3 within 15s) even when RU Bypass (DIRECT)
+     * keeps OS TrafficStats RX counters non-zero.
+     */
+    fun onCoreLogLine(line: String) {
+        if (!isProxyDialError(line)) return
+        val cfg = repository.autoPingConfig.value
+        if (!cfg.autoRecoverOnDrop) return
+        if (!FlClashVpnService.runtimeState.value.isConnected) return
+        if (pingEngine.isTesting.value) return
+        if (!repository.isGroupAuto(repository.activeGroupId.value)) return
+        if (cfg.pauseWhenScreenOff && !isScreenInteractive()) return
+
+        val nowMs = System.currentTimeMillis()
+        if (isWithinSwitchGracePeriod(lastNodeSwitchMillis, nowMs)) return
+        if (isRecoveryCooldownActive(lastEmergencyScanMillis, nowMs)) return
+        if (isHealthyCheckCooldownActive(lastHealthyCheckMillis, nowMs)) return
+
+        val triggered = synchronized(proxyErrorTimestamps) {
+            recordErrorBurst(proxyErrorTimestamps, nowMs)
+        }
+        if (triggered) {
+            scope.launch {
+                verifyAndRecoverIfNodeDead(
+                    reason = "ошибки прокси в ядре",
+                    requiredStrikes = CORE_ERROR_STRIKES,
+                    bypassCooldown = false
+                )
+            }
+        }
     }
 
     fun startOrRestart(runImmediately: Boolean = false) {
@@ -182,6 +238,7 @@ class AutoTestScheduler(
         recoveryMutex.withLock {
             val nowMs = System.currentTimeMillis()
             if (!bypassCooldown && isRecoveryCooldownActive(lastEmergencyScanMillis, nowMs)) return
+            if (!bypassCooldown && isHealthyCheckCooldownActive(lastHealthyCheckMillis, nowMs)) return
             if (pingEngine.isTesting.value) return
             if (!FlClashVpnService.runtimeState.value.isConnected) return
 
@@ -191,8 +248,14 @@ class AutoTestScheduler(
             if (targetNodes.isEmpty()) return
             if (!apiClient.isCoreAlive()) return
 
-            // Do not waste scans when device physically has no validated mobile/Wi-Fi internet
-            if (!isUnderlyingNetworkValidated()) return
+            // Do not waste scans when device physically has no mobile/Wi-Fi network
+            if (!hasUnderlyingInternet()) {
+                if (nowMs - lastNoNetLogMillis >= 60_000L) {
+                    lastNoNetLogMillis = nowMs
+                    onStatusLog("[AUTO] Проверка пропущена ($reason): нет базовой сети (Wi-Fi/LTE)")
+                }
+                return
+            }
 
             val startManualVer = manualSelectionVersion.get()
             val cfg = repository.autoPingConfig.value
@@ -207,11 +270,13 @@ class AutoTestScheduler(
                 for (attempt in 1..requiredStrikes) {
                     if (shouldAbortRecovery(startManualVer)) return
                     if (pingEngine.isTesting.value) return
-                    if (!isUnderlyingNetworkValidated()) return
+                    if (!hasUnderlyingInternet()) return
 
                     val delayMs = apiClient.testProxyDelay(exactName, cfg.testUrl, cfg.timeoutMs)
                     if (delayMs != null && delayMs > 0) {
-                        // Node responded -> was only a micro-glitch, no full scan needed
+                        // Node responded -> was only a micro-glitch or single bad host, enter short healthy cooldown
+                        lastHealthyCheckMillis = System.currentTimeMillis()
+                        clearProxyErrors()
                         return
                     }
                     failures += 1
@@ -240,7 +305,7 @@ class AutoTestScheduler(
         val totalAttempts = 1 + MAX_RECOVERY_RESCANS
         for (attempt in 0 until totalAttempts) {
             if (shouldAbortRecovery(startManualVer)) return
-            if (!isUnderlyingNetworkValidated()) {
+            if (!hasUnderlyingInternet()) {
                 _lastStatusText.value = "Нет базовой сети"
                 onStatusLog("[AUTO] Восстановление остановлено: мобильные данные/Wi-Fi недоступны")
                 return
@@ -263,12 +328,18 @@ class AutoTestScheduler(
             if (shouldAbortRecovery(startManualVer)) return
 
             val ranked = rankAliveNodes(targetNodes, results)
+            if (ranked.isEmpty()) {
+                lastEmergencyScanMillis = System.currentTimeMillis()
+                _lastStatusText.value = "Нет рабочих серверов"
+                onStatusLog("[AUTO] Ни один сервер не ответил (возможно, нет интернета) — пауза ${RECOVERY_COOLDOWN_MS / 1000}с")
+                return
+            }
             val candidates = ranked.take(POST_VERIFY_TOP_CANDIDATES)
 
             for ((idx, pair) in candidates.withIndex()) {
                 val (candidate, measuredMs) = pair
                 if (shouldAbortRecovery(startManualVer)) return
-                if (!isUnderlyingNetworkValidated()) return
+                if (!hasUnderlyingInternet()) return
 
                 applySelectionAndWait(candidate, measuredMs)
                 delay(POST_VERIFY_SETTLE_MS)
@@ -286,7 +357,7 @@ class AutoTestScheduler(
             }
 
             if (attempt < MAX_RECOVERY_RESCANS) {
-                if (!isUnderlyingNetworkValidated()) {
+                if (!hasUnderlyingInternet()) {
                     _lastStatusText.value = "Нет базовой сети"
                     return
                 }
@@ -328,7 +399,7 @@ class AutoTestScheduler(
         return pm?.isInteractive != false
     }
 
-    private fun isUnderlyingNetworkValidated(): Boolean {
+    private fun hasUnderlyingInternet(): Boolean {
         return runCatching {
             val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
                 ?: return true
@@ -338,8 +409,7 @@ class AutoTestScheduler(
             networks.any { net ->
                 val caps = cm.getNetworkCapabilities(net) ?: return@any false
                 caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) &&
-                    caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                    caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                    caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             }
         }.getOrDefault(true)
     }
@@ -365,6 +435,7 @@ class AutoTestScheduler(
         watchdogJob = null
         networkRecoveryJob?.cancel()
         networkRecoveryJob = null
+        clearProxyErrors()
         _lastStatusText.value = "Остановлен"
     }
 
@@ -445,6 +516,7 @@ class AutoTestScheduler(
     }
 
     private suspend fun applySelectionAndWait(node: ProxyNode, latencyMs: Int) {
+        markNodeSwitched()
         repository.setSelectedNode(node)
         if (apiClient.isCoreAlive()) {
             val exactName = MihomoConfigGenerator.resolveExactName(node)
@@ -460,6 +532,7 @@ class AutoTestScheduler(
     }
 
     private fun applySelection(node: ProxyNode, latencyMs: Int) {
+        markNodeSwitched()
         repository.setSelectedNode(node)
         scope.launch {
             if (apiClient.isCoreAlive()) {
@@ -481,16 +554,31 @@ class AutoTestScheduler(
         const val STALL_MIN_TX_BYTES = 2_048L
         const val STALL_MAX_RX_BYTES = 1_024L
         const val CONFIRM_STRIKES_REQUIRED = 3
+        const val CORE_ERROR_STRIKES = 2
         const val NETWORK_SWITCH_STRIKES = 2
         const val CONFIRM_RETRY_DELAY_MS = 3_500L
         const val POST_VERIFY_SETTLE_MS = 1_500L
         const val POST_VERIFY_TOP_CANDIDATES = 3
         const val MAX_RECOVERY_RESCANS = 2
         const val RECOVERY_COOLDOWN_MS = 120_000L
+        const val HEALTHY_CHECK_COOLDOWN_MS = 45_000L
+        const val NODE_SWITCH_GRACE_MS = 6_000L
+        const val PROXY_ERROR_WINDOW_MS = 15_000L
+        const val PROXY_ERROR_BURST_COUNT = 3
         const val NETWORK_LOSS_MIN_MS = 5_000L
         const val NETWORK_RECOVER_DEBOUNCE_MS = 3_000L
 
         private val RECOVERY_BACKOFF_MS = longArrayOf(10_000L, 25_000L)
+        private val REAL_DIAL_ERROR_MARKERS = listOf(
+            "connect error",
+            "i/o timeout",
+            "context deadline exceeded",
+            "connection reset",
+            "eof",
+            "no route to host",
+            "network is unreachable",
+            "broken pipe"
+        )
 
         fun backoffDelayForRetry(retryIndex: Int): Long =
             RECOVERY_BACKOFF_MS[retryIndex.coerceIn(0, RECOVERY_BACKOFF_MS.lastIndex)]
@@ -503,5 +591,32 @@ class AutoTestScheduler(
 
         fun isRecoveryCooldownActive(lastRecoveryMs: Long, nowMs: Long): Boolean =
             lastRecoveryMs > 0L && (nowMs - lastRecoveryMs) in 0L until RECOVERY_COOLDOWN_MS
+
+        fun isHealthyCheckCooldownActive(lastHealthyMs: Long, nowMs: Long): Boolean =
+            lastHealthyMs > 0L && (nowMs - lastHealthyMs) in 0L until HEALTHY_CHECK_COOLDOWN_MS
+
+        fun isWithinSwitchGracePeriod(lastSwitchMs: Long, nowMs: Long): Boolean =
+            lastSwitchMs > 0L && (nowMs - lastSwitchMs) in 0L until NODE_SWITCH_GRACE_MS
+
+        fun isProxyDialError(line: String): Boolean {
+            if (!line.contains("dial PROXY") || !line.contains("error:")) return false
+            if (line.contains("dial DIRECT")) return false
+            val lower = line.lowercase()
+            if (lower.contains("context canceled") || lower.contains("closed network connection")) return false
+            return REAL_DIAL_ERROR_MARKERS.any { lower.contains(it) }
+        }
+
+        fun recordErrorBurst(timestamps: ArrayDeque<Long>, nowMs: Long): Boolean {
+            while (timestamps.isNotEmpty() && nowMs - timestamps.first() > PROXY_ERROR_WINDOW_MS) {
+                timestamps.removeFirst()
+            }
+            timestamps.addLast(nowMs)
+            return if (timestamps.size >= PROXY_ERROR_BURST_COUNT) {
+                timestamps.clear()
+                true
+            } else {
+                false
+            }
+        }
     }
 }

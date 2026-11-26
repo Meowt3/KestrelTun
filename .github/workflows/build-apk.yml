@@ -63,37 +63,37 @@ jobs:
       - name: Prepare APK Artifacts
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-universal-release.apk dist/KestrelTun-v1.2.1-universal-release.apk
-          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk dist/KestrelTun-v1.2.1-arm64-v8a-release.apk
-          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk dist/KestrelTun-v1.2.1-armeabi-v7a-release.apk
-          cp app/build/outputs/apk/release/app-x86_64-release.apk dist/KestrelTun-v1.2.1-x86_64-release.apk
+          cp app/build/outputs/apk/release/app-universal-release.apk dist/KestrelTun-v1.2.2-universal-release.apk
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk dist/KestrelTun-v1.2.2-arm64-v8a-release.apk
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk dist/KestrelTun-v1.2.2-armeabi-v7a-release.apk
+          cp app/build/outputs/apk/release/app-x86_64-release.apk dist/KestrelTun-v1.2.2-x86_64-release.apk
           ls -lh dist/
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KestrelTun-v1.2.1-release-apks
+          name: KestrelTun-v1.2.2-release-apks
           path: dist/*.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.2.1
-          name: KestrelTun v1.2.1 (Smart Auto-Recovery + Battery Optimizations)
+          tag_name: v1.2.2
+          name: KestrelTun v1.2.2 (Reliable Auto-Recovery Watchdog)
           body: |
-            ### What's New in KestrelTun v1.2.1
-            - **Smart Drop Detection (Zero-Traffic Watchdog)**: In Auto-Tunneling mode, passively monitors OS traffic counters while the screen is on — sleeps when idle or downloading normally, and triggers a 3-strike confirmation check only when outgoing requests receive no response.
-            - **Verified Recovery with Top-3 Fallback**: After an auto-test, verifies the newly selected node (1.5s settle + live check) and falls back through top-3 fresh candidates before running at most 2 bounded rescans with exponential backoff (10s → 25s), underlying Wi-Fi/mobile network validation, and a 2-minute anti-loop cooldown.
-            - **Network Switch & Outage Recovery**: Ignores micro-drops under 5 seconds; on real outages or Wi-Fi ↔ LTE/5G switches, waits 3s for routes/DNS, clears stale sockets, and verifies the active node before rescanning.
-            - **Safe Battery & Memory Optimizations**: Balanced Mihomo `keep-alive` (`60s / 30s`, keeping background push notifications instant while waking the radio 4× less), shared `OkHttpClient` connection pool, idle canvas skip on the speed graph, and lazy log-list allocations.
+            ### What's New in KestrelTun v1.2.2
+            - **Reactive Core-Log Drop Detector (Works with RU Bypass)**: Listens directly to `mihomo` proxy dial errors (`>= 3` real `dial PROXY` failures within 15s, strictly ignoring `DIRECT` traffic and `context canceled`) with zero extra traffic or radio wakeups.
+            - **Fixed Mobile LTE Recovery Blocking**: Removed overly strict `NET_CAPABILITY_VALIDATED` gate that silently blocked auto-recovery on cellular networks where captive-portal validation is unavailable; added immediate 2-minute cooldown when 0 servers respond to protect battery during real offline periods.
+            - **Anti-False-Positive Guards**: Added a 6s post-switch grace period (ignoring trailing timeouts from the previous node), a 45s healthy-check cooldown (preventing repeated pings on single dead hosts or long uploads), and effective-transport tracking to stop Wi-Fi + LTE flapping when Mobile Data Always Active is enabled.
+            - **Enhanced Diagnostic Header**: Diagnostic logs now include Auto-Tunneling state, `RecoverOnDrop` flag, and current watchdog status.
 
-            ### Что нового в KestrelTun v1.2.1
-            - **Умная автопроверка при обрыве (Watchdog)**: в режиме Автотуннелинга пассивно отслеживает системные счётчики трафика при включённом экране — спит в простое и при нормальной загрузке, а при зависании запускает подтверждение из 3 проверок подряд, отсекая микролаги.
-            - **Пост-проверка восстановления и фоллбек по топ-3**: после авто-теста проверяет выбранный сервер (1.5 сек + контрольный запрос) и при необходимости перебирает топ-3 свежих кандидатов без лишнего полного перескана; максимум 2 повторных теста с нарастающей паузой (10с → 25с), проверкой мобильной сети/Wi-Fi и паузой 2 мин от зацикливания.
-            - **Реакция на смену и восстановление сети**: игнорирует микропадения короче 5 секунд; при переключении Wi-Fi ↔ LTE/5G или возврате сети ждёт 3 сек, сбрасывает зависшие сокеты и проверяет текущий узел.
-            - **Безопасные оптимизации батареи и памяти**: сбалансированный `keep-alive` в Mihomo (`60 / 30` сек — push-уведомления в фоне работают мгновенно, а модем будится в 4 раза реже), общий пул `OkHttpClient`, пропуск пустых перерисовок графика скорости и ленивое обновление списка логов.
+            ### Что нового в KestrelTun v1.2.2
+            - **Реактивный детектор обрывов по логам ядра (работает с RU Bypass)**: отслеживает реальные ошибки `dial PROXY` в потоке `mihomo` (≥ 3 ошибки за 15 сек, игнорируя `DIRECT` и `context canceled`) — срабатывает даже при активном прямом трафике и не тратит батарею.
+            - **Исправлено восстановление в мобильных сетях LTE**: снята жёсткая привязка к системному флагу `NET_CAPABILITY_VALIDATED`, который молча блокировал автопроверку на вышках без Google-валидации; при полном отсутствии интернета (0 ответивших серверов) сразу включается 2-минутная пауза без лишних повторов.
+            - **Защита от ложных срабатываний**: пауза 6 сек после переключения узла («хвост» старых ошибок), cooldown 45 сек после подтверждения живого узла (один недоступный сайт или аплоад не дёргают пинг) и определение эффективного транспорта без ложных обрывов при одновременно активных Wi-Fi и LTE.
+            - **Расширенный диагностический лог**: в шапку лога добавлены статус Автотуннелинга, состояние автопроверки при обрыве и текущий статус планировщика.
           files: |
-            dist/KestrelTun-v1.2.1-universal-release.apk
-            dist/KestrelTun-v1.2.1-arm64-v8a-release.apk
-            dist/KestrelTun-v1.2.1-armeabi-v7a-release.apk
-            dist/KestrelTun-v1.2.1-x86_64-release.apk
+            dist/KestrelTun-v1.2.2-universal-release.apk
+            dist/KestrelTun-v1.2.2-arm64-v8a-release.apk
+            dist/KestrelTun-v1.2.2-armeabi-v7a-release.apk
+            dist/KestrelTun-v1.2.2-x86_64-release.apk
